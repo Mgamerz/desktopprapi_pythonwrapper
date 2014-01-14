@@ -7,6 +7,7 @@ import urllib.parse
 import requests
 from requests.auth import HTTPBasicAuth
 import getpass
+import traceback
 
 class DesktopprApi(object):
     '''
@@ -49,6 +50,7 @@ class DesktopprApi(object):
     
     def get_usercollection(self,username):
         '''Returns a dictionary describing a specific users' collection of wallpapers.'''
+        '''The API documentation on this method is somewhat ambiguous.'''
         query='users/'+username+'/wallpapers'
         requesturl=self.baseurl+query
         response=None
@@ -59,18 +61,26 @@ class DesktopprApi(object):
         return response
     
     def get_wallpapers(self,page=1,safefilter='safe'):
-        '''Retrieves a list of wallpapers, formatted for json. If you print the response you can see all parameters the API has returned, in a dict format.'''
+        '''Retrieves a list of wallpapers, and returns a list of wallpaper objects.'''
         if safefilter!='safe' and safefilter!='include_pending' and safefilter!='all':
             print('Unknown filter:',safefilter,'Valid options are safe, include_pending, all')
             return
-        '''Gets a single page of wallpapers. Defaults to the front page'''
-        query={'page':str(page)}
+        query={'page':str(page),'safe_filter':safefilter}
         requesturl=self.baseurl+'wallpapers?'+urllib.parse.urlencode(query)
         response=requests.get(requesturl)
-        if response==200:
-            return response.json()['response']
+        if response.status_code==200:
+            #Build wallpaper object
+            wallpapers=[]
+            json = response.json()['response']
+            for paperinfo in json:
+                wallpaper=Wallpaper()
+                #print('=====')
+                for key in paperinfo:
+                    setattr(wallpaper,key,paperinfo[key])
+                wallpapers.append(wallpaper)
+            return wallpapers
         else:
-            print('Error getting wallpapers.')
+            print('Error getting wallpapers:',response.status_code)
             return
     
     def get_wallpapers_url(self,page=1,safefilter='safe'):
@@ -79,17 +89,31 @@ class DesktopprApi(object):
             print('Unknown filter:',safefilter,'Valid options are safe, include_pending, all')
             return
         
-        image_infos=self.get_wallpapers(page)
-        print('Parsing urls')
+        wallpapers=self.get_wallpapers(page,safefilter)
         urls=[]
-        if image_infos:
-            for image_info in image_infos['response']:
-                urls.append(image_info['image']['url'])
+        if wallpapers:
+            for wallpaper in wallpapers:
+                urls.append(wallpaper.image['url'])
         return urls
     
     def get_userfollowers(self,username):
         '''Not yet defined.'''
         pass
+    
+    def get_user_randomwallpaper(self,username):
+        '''Gets a dictionary describing a random wallpaper in a users collection.
+        Returns None if the user has no wallpapers in their collection.'''
+        query='users/'+username+'/wallpapers/random'
+        requesturl=self.baseurl+query
+        print(requesturl)
+        r = requests.get(requesturl)
+        if r.status_code==500:
+            print('Error: The user may not have any wallpapers, or some other error occurred: 500')
+            return
+        if r.status_code==404:
+            print('The user',username,'does not exist: 404')
+            return
+        return r.json()['response']
     
     def follow_user(self,username,unfollow=False):
         '''This method is privledged. You must authorize before using it.
@@ -114,7 +138,31 @@ class DesktopprApi(object):
             #    print('Abnormal response following user',username,':',r.status_code)
         return r.status_code
         
-            
+class Wallpaper():
+    '''Items are put into this dynamically, and it has no methods.'''
+    
+    def __init__(self):
+        '''Predefined wallpaper attributes. These are elements in the returned json response when querying for an attribute.'''
+        self.height=None
+        self.created_at=None
+        self.image=None
+        self.url=None
+        self.uploader=None
+        self.user_count=None
+        self.likes_count=None
+        self.review_state=None
+        self.bytes=None
+        self.palette=None
+        self.id=None
+        self.width=None
+        
+    def __str__(self):
+        string='Wallpaper object: '
+        props=[]
+        for attr in dir(self):
+            if not callable(attr) and not attr.startswith('__'):
+                props.append(attr+'='+str(getattr(self,attr)))
+        return string+str(props)
         
 def get_userpass():
     '''Prompt for username password. This is not part of the API, only a convenience method for this module.'''
@@ -125,6 +173,11 @@ def get_userpass():
         
 if __name__=='__main__':
     api=DesktopprApi()
+    
+    #test get wallpaper info pages
+    wallpapers=api.get_wallpapers(2)
+    for paper in wallpapers:
+        print(paper)
     #test authorization techniques
     userpass=get_userpass()
     if api.authorize_userpass(userpass[0],userpass[1]):
@@ -137,6 +190,11 @@ if __name__=='__main__':
     else:
         print('API Authorization failed')
     
+
+    
+    print(api.get_user_randomwallpaper('keithpitt'))
+    print(api.get_user_randomwallpaper('mgamerz'))
+    print(api.get_user_randomwallpaper('mgamerzsg'))
     #test userinfo queries
     print(api.get_userinfo('keithpitt'))
     print(api.get_usercollection('keithpitt')) #
@@ -152,8 +210,7 @@ if __name__=='__main__':
     else:
         print('Unfollow user failed')
     
-    #test get wallpaper info pages
-    api.get_wallpapers(2)
+    
     
     #test fetching wallpaper urls
     images=api.get_wallpapers_url()
