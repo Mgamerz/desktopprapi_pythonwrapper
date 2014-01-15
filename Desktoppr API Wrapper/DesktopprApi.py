@@ -34,8 +34,8 @@ class DesktopprAPI:
             return False
 
     def authorize_user_pass(self, username, password):
-        '''Gets a privledged access key by authorizing to the site with a username/
-        password. Stores the users API key for further privledged access in this 
+        '''Gets a privileged access key by authorizing to the site with a username/
+        password. Stores the users API key for further privileged access in this 
         session.
         '''
         r = requests.get(
@@ -61,7 +61,7 @@ class DesktopprAPI:
             print('Error retrieving information for user', username, ':', e)
         return response
 
-    def get_usercollection(self, username):
+    def get_user_collection(self, username):
         '''Returns a dictionary describing a specific users' collection of 
         wallpapers. The API documentation on this method is somewhat ambiguous.
         '''
@@ -196,7 +196,7 @@ class DesktopprAPI:
         pass
 
 
-class Wallpaper():
+class Wallpaper:
 
     '''Items are put into this dynamically, and it has no methods.'''
 
@@ -226,10 +226,9 @@ class Wallpaper():
         return string + str(props)
 
 
-def get_userpass():
-    '''Prompt for username password. This is not part of the API, only a 
-    convenience method for this module.'''
-    
+def _get_userpass():
+    '''Prompt for username password.'''
+
     print('Username: ', end='')
     username = input()
     password = getpass.getpass()
@@ -238,7 +237,7 @@ def get_userpass():
 if __name__ == '__main__':
     api = DesktopprAPI()
     # test authorization techniques
-    userpass = get_userpass()
+    userpass = _get_userpass()
     if api.authorize_user_pass(userpass[0], userpass[1]):
         print('Username/Password Authorization successful')
     else:
@@ -260,7 +259,7 @@ if __name__ == '__main__':
 
     # test userinfo queries
     print(api.get_user_info('keithpitt'))
-    print(api.get_usercollection('keithpitt'))
+    print(api.get_user_collection('keithpitt'))
 
     # test get wallpaper info pages
     wallpapers = api.get_wallpapers(2)
