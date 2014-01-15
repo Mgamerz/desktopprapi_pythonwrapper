@@ -17,7 +17,8 @@ class DesktopprAPI:
 	This class allows you to create an object that allows you to query the desktoppr site using their public api.
 	'''
 	baseurl = 'https://api.desktoppr.co/1/'
-
+	apikey = None
+	
 	def authorize_API(self, apikey):
 		'''Authorizes using a users api key. This does not require the users 
 		password or username.
@@ -175,14 +176,36 @@ class DesktopprAPI:
 			#	print('Abnormal response following user',username,':',r.status_code)
 		return r.status_code
 
-	def sync_wallpaper(self):
-		# use post
-		pass
+	def sync_wallpaper(self,wallpaper_id):
+		return self.__update_sync(wallpaper_id,'sync')
 
-	def unsync_wallpaper(self):
-		# use delete
-		pass
+	def unsync_wallpaper(self,wallpaper_id):
+		return self.__update_sync(wallpaper_id,'unsync')
+	
+	def __update_sync(self,wallpaper_id,action):
+		'''Internal method to handle sync requests'''
+		if action!='sync' and action!='unsync':
+			print('An internal error occured trying to sync or unsync a wallpaper.')
+			return
+		if not self.apikey:
+			print(
+				'ERROR: This is a user command. You must first authenticate as a user with authorize_user_pass() or authorize_API() method.')
+			return False
+		requesturl='{}user/wallpapers/{}/selection'.format(self.baseurl,wallpaper_id)
+		auth={'auth_token':self.apikey}
+		r = None
+		if action=='sync':
+			r = requests.post(requesturl,params=auth)
+		else:
+			r = requests.delete(requesturl,params=auth)
+		if action=='sync' and (r.status_code==200 or r.status_code==422): #422 means its already synced
+			return True
+		else:
+			if r.status_code==200 or r.status_code==404: #unsync checks against your dropbox folder. If it 404's, the file is already unsynced.
+				return True
+		return False
 
+		
 	def check_if_synced(self, username, wallpaper_id):
 		'''Checks if a user has a wallpaper currently synced to their dropbox.
 		Returns True if it is, False otherwise.'''
@@ -262,13 +285,13 @@ def _get_userpass():
 if __name__ == '__main__':
 	api = DesktopprAPI()
 	# test authorization techniques
-	'''
+	
 	userpass = _get_userpass()
 	if api.authorize_user_pass(userpass[0], userpass[1]):
 		print('Username/Password Authorization successful')
 	else:
 		print('Username/Password Authorization failed')
-	'''
+	
 	#test for wallpaper sync
 	if	api.check_if_synced('keithpitt',256167):
 		print('User has synced wallpaper')
@@ -279,6 +302,11 @@ if __name__ == '__main__':
 		print('User has synced wallpaper')
 	else:
 		print('User has not synced wallpaper 417841')
+		
+	if api.unsync_wallpaper(256167):
+		print('Wallpaper should sync shortly.')
+	else:
+		print('Error trying to sync wallpaper.')
 	exit()
 	
 	if api.authorize_API('YOUR API KEY HERE'):
