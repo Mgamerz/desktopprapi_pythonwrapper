@@ -128,21 +128,18 @@ class DesktopprAPI:
 		print(response)
 		pass
 
-	def get_user_random_wallpaper(self, username):
-		'''Gets a dictionary describing a random wallpaper in a users collection.
-		Returns None if the user has no wallpapers in their collection.'''
-		query = 'users/' + username + '/wallpapers/random'
-		requesturl = self.baseurl + query
-		print(requesturl)
+	def get_user_randomwallpaper(self, username):
+		'''Fetches a random wallpaper a user has in their collection.
+		Returns a Wallpaper object, or None if it can't retreive a wallpaper.'''
+		requesturl = '{}users/{}/wallpapers/random'.format(self.baseurl,username)
 		r = requests.get(requesturl)
-		if r.status_code == 500:
-			print(
-				'Error: The user may not have any wallpapers, or some other error occurred: 500')
-			return
-		if r.status_code == 404:
-			print('The user', username, 'does not exist: 404')
-			return
-		return r.json()['response']
+		if r.status_code == 500 or r.status_code == 404:
+			#error occured
+			print(r.url)
+			print('Status code:{}',r.status_code)
+			return None
+		wallpaper = Wallpaper(r.json()['response'])
+		return wallpaper
 
 	def follow_user(self, username, unfollow=False):
 		'''This method is privileged. You must authorize before using it.
@@ -176,6 +173,52 @@ class DesktopprAPI:
 			#	print('Abnormal response following user',username,':',r.status_code)
 		return r.status_code
 
+
+	def like_wallpaper(self,wallpaper_id):
+		return self.__update_like(wallpaper_id,'like')
+
+	def unlike_wallpaper(self,wallpaper_id):
+		return self.__update_like(wallpaper_id,'unlike')
+	
+	def __update_like(self,wallpaper_id,action):
+		'''Internal method to handle like/unlike requests'''
+		if action!='like' and action!='unlike':
+			print('An internal error occured trying to like or unlike a wallpaper.')
+			return
+		if not self.apikey:
+			print(
+				'ERROR: This is a user command. You must first authenticate as a user with authorize_user_pass() or authorize_API() method.')
+			return False
+		requesturl='{}user/wallpapers/{}/like'.format(self.baseurl,wallpaper_id)
+		auth={'auth_token':self.apikey}
+		r = None
+		if action=='like':
+			r = requests.post(requesturl,params=auth)
+		else:
+			r = requests.delete(requesturl,params=auth)
+		if action=='like' and (r.status_code==200 or r.status_code==422): #422 means its already synced
+			return True
+		else:
+			if r.status_code==200 or r.status_code==404: #unsync checks against your dropbox folder. If it 404's, the file is already unsynced.
+				return True
+		return False
+
+	def check_if_liked(self, username, wallpaper_id):
+		'''Checks if a user has liked a wallpaper.
+		Returns True if it is, False otherwise.'''
+		query={'wallpaper_id':wallpaper_id}
+		r = requests.get('{}users/{}/likes'.format(self.baseurl,username),params = query)
+		print(r.url)
+		if r.status_code!=200:
+			print('Error retrieving liked status:{}',(r.status_code))
+		liked=r.json()['response']
+		print(liked)
+		if liked:
+			return True
+		else:
+			return False
+
+
 	def sync_wallpaper(self,wallpaper_id):
 		return self.__update_sync(wallpaper_id,'sync')
 
@@ -205,7 +248,6 @@ class DesktopprAPI:
 				return True
 		return False
 
-		
 	def check_if_synced(self, username, wallpaper_id):
 		'''Checks if a user has a wallpaper currently synced to their dropbox.
 		Returns True if it is, False otherwise.'''
@@ -248,10 +290,12 @@ class Wallpaper:
 
 	'''Items are put into this dynamically, and it has no methods.'''
 
-	def __init__(self):
+	def __init__(self,info=None):
 		'''Predefined wallpaper attributes. These are elements in the returned
 		json response when querying for an attribute.
 		'''
+		
+		#Set wallpaper defaults
 		self.height = None
 		self.created_at = None
 		self.image = None
@@ -264,6 +308,11 @@ class Wallpaper:
 		self.palette = None
 		self.id = None
 		self.width = None
+		
+		if info:
+			#We are going to parse a new wallpaper json
+			for key in info:
+				setattr(self, key, info[key])
 
 	def __str__(self):
 		string = 'Wallpaper object: '
@@ -285,13 +334,19 @@ def _get_userpass():
 if __name__ == '__main__':
 	api = DesktopprAPI()
 	# test authorization techniques
-	
+	'''
 	userpass = _get_userpass()
 	if api.authorize_user_pass(userpass[0], userpass[1]):
 		print('Username/Password Authorization successful')
 	else:
 		print('Username/Password Authorization failed')
-	
+	'''
+	wallpaper = api.get_user_randomwallpaper('keithpitt')
+	if wallpaper:
+		print(wallpaper.image['url'])
+	else:
+		print('Error!')
+	exit()
 	#test for wallpaper sync
 	if	api.check_if_synced('keithpitt',256167):
 		print('User has synced wallpaper')
