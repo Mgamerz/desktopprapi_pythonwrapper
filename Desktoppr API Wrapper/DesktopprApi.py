@@ -368,8 +368,7 @@ class Wallpaper:
 
 	def __init__(self,info=None):
 		'''Predefined wallpaper attributes. These are elements in the returned
-		json response when querying for a wallpaper.
-		'''
+		json response when querying for a wallpaper.'''
 		
 		#Set wallpaper defaults
 		self.height = None

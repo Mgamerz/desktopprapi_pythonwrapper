@@ -15,6 +15,8 @@ class Test(unittest.TestCase):
         self.assertEqual(api.unlike_wallpaper(201),None)
         self.assertEqual(api.sync_wallpaper(202),None)
         self.assertEqual(api.unsync_wallpaper(203),None)
+        
+    #More tests to be written.
 
 
 if __name__ == "__main__":
