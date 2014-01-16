@@ -5,7 +5,9 @@ from setuptools import setup
 
 MODULE_NAME = 'DesktopprApi'
 
-README = open(os.path.join(os.path.dirname(__file__), 'README.md')).read()
+print (os.path.join(os.path.dirname(__file__)))
+print()
+README = open('{}/README.md'.format(os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir)))).read()
 VERSION = re.search("__version__ = '([^']+)'",
                     open('{0}.py'.format(MODULE_NAME)).read()).group(1)
 
