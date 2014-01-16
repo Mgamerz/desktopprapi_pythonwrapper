@@ -1,0 +1,22 @@
+'''
+Created on Jan 15, 2014
+
+@author: Mgamerz
+'''
+import unittest
+from DesktopprApi import DesktopprAPI
+
+class Test(unittest.TestCase):
+
+
+    def testNoauth(self):
+        api=DesktopprAPI()
+        self.assertEqual(api.like_wallpaper(200),None)
+        self.assertEqual(api.unlike_wallpaper(201),None)
+        self.assertEqual(api.sync_wallpaper(202),None)
+        self.assertEqual(api.unsync_wallpaper(203),None)
+
+
+if __name__ == "__main__":
+    #import sys;sys.argv = ['', 'Test.testNoauth']
+    unittest.main()

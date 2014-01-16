@@ -6,6 +6,7 @@ Created on Jan 13, 2014
 '''
 import urllib.parse
 import requests
+import logging
 import getpass
 
 from requests.auth import HTTPBasicAuth
@@ -20,14 +21,14 @@ class DesktopprAPI:
 	apikey = None
 	
 	def authorize_API(self, apikey):
-		'''Authorizes using a users api key. This does not require the users 
+		'''Authorizes using a users api key. This does not require the user's 
 		password or username.
 		'''
 		query = {'auth_token': apikey}
 		requesturl = '{}user/whoami'.format(self.baseurl)
 		r = requests.get(requesturl,params=query)
 		if r.status_code == 200:
-			print('Authenticated as', r.json()['response']['username'])
+			logging.info('Authenticated as {}'.format(r.json()['response']['username']))
 			self.apikey = apikey
 			return True
 		else:
@@ -45,45 +46,50 @@ class DesktopprAPI:
 				password))
 		if r.status_code == 200:
 			self.apikey = r.json()['response']['api_token']
-			print('Authenticated, got API token')
+			logging.info('Authenticated, storing API token')
 			return True
 		else:
 			return False
 
 	def get_user_info(self, username):
-		'''Returns a dictionionary describing a specific user.'''
+		'''Get information about a user.
+		Returns None if the request did not return user information.
+		Returns a User object describing a specific user if successful.'''
 		query = 'users/' + username
 		requesturl = self.baseurl + query
 		response = None
 		try:
 			response = requests.get(requesturl).json()['response']
 		except Exception as e:
-			print('Error retrieving information for user', username, ':', e)
-		return response
+			#Put a logging message here
+			logging.info('Error retrieving information for user {}: {}'.format(username, e))
+		return User(response)
 
 	def get_user_collection(self, username):
 		'''Returns a dictionary describing a specific users' collection of 
 		wallpapers. The API documentation on this method is somewhat ambiguous.
 		'''
-		query = 'users/' + username + '/wallpapers'
-		requesturl = self.baseurl + query
+		requesturl = '{}users/{}/wallpapers'.format(self.baseurl,username)
 		response = None
 		try:
 			response = requests.get(requesturl).json()['response']
 		except Exception as e:
-			print(
-				'Error retreiving wallpaper collection for user',
-				username,
-				':',
-				e)
+			logging.info('Error retrieving wallpaper collection for user {}: {}'.format(username,e))
 		return response
 
 	def get_wallpapers(self, page=1, safefilter='safe'):
-		'''Retrieves a list of wallpapers, and returns a list of wallpaper 
-		objects.
+		'''Retrieves a list of wallpapers.
+		The page parameter can query different pages of results.
+		The safefilter can return different levels of images:
+		safe = Safe for work
+		include_pending = Images not yet marked as safe or not safe for work (NSFW)
+		all = All images, including NSFW images
+		
+		Returns None if a bad safetyfilter is passed (if any) or there was an error getting wallpapers.
+		Returns a list of Wallpaper objects if successful.
 		'''
 		if safefilter != 'safe' and safefilter != 'include_pending' and safefilter != 'all':
-			print(
+			logging.info(
 				'Unknown filter:',
 				safefilter,
 				'Valid options are safe, include_pending, all')
@@ -102,35 +108,64 @@ class DesktopprAPI:
 				wallpapers.append(wallpaper)
 			return wallpapers
 		else:
-			print('Error getting wallpapers:', response.status_code)
+			logging.info('Error getting wallpapers:', response.status_code)
 			return
 
 	def get_wallpapers_url(self, page=1, safefilter='safe'):
-		'''This is a subset of get_wallpapers(), which returns a page of wallpaper URLs. The API does not document sorting options.'''
+		'''This is a subset of get_wallpapers(), which returns a page of wallpaper URLs. The API does not document sorting options.
+		It uses the same interface as get_wallpapers.
+		'''
 		if safefilter != 'safe' and safefilter != 'include_pending' and safefilter != 'all':
 			print(
 				'Unknown filter:',
 				safefilter,
 				'Valid options are safe, include_pending, all')
-			return
+			return None
 
 		wallpapers = self.get_wallpapers(page, safefilter)
 		urls = []
 		if wallpapers:
 			for wallpaper in wallpapers:
-				urls.append(wallpaper.image['url'])
+				urls.append(wallpaper.image.url)
 		return urls
 
-	def get_user_followers(self, username):
-		'''Not yet defined.'''
-		query = 'users/' + username + '/followers'
-		response = requests.get(self.baseurl + query)
-		print(response)
-		pass
-
+	def get_user_followers(self, username, page=1):
+		'''Fetches a list of users who follow this user.
+		Returns None if the user has no followers, cannot be found, or an error occurs.
+		Returns a list of User objects otherwise.'''
+		requesturl = '{}users/{}/followers'.format(self.baseurl,username)
+		query={'page':page}
+		r = requests.get(requesturl,params=query)
+		if r.status_code==200:
+			users = []
+			userlist = r.json()['response']
+			for user in userlist:
+				users.append(user)
+			return users
+		else:
+			logging.info('Unable to retrieve followers: {}'.format(r.status_code))
+			return None
+	
+	def get_followed_users(self,username,page=1):
+		'''Gets a dictionary list of users a specific user follows.
+		Returns None if the user follows noone, the user cannot be found, or an error occurs.
+		Returns a list of User objects otherwise.'''
+		requesturl = '{}users/{}/following'.format(self.baseurl,username)
+		query={'page':page}
+		r = requests.get(requesturl,params=query)
+		if r.status_code==200:
+			users = []
+			userlist = r.json()['response']
+			for user in userlist:
+				users.append(user)
+			return users
+		else:
+			logging.info('Unable to retrieve following list: {}'.format(r.status_code))
+			return None
 	def get_user_randomwallpaper(self, username):
 		'''Fetches a random wallpaper a user has in their collection.
-		Returns a Wallpaper object, or None if it can't retreive a wallpaper.'''
+		Returns a Wallpaper object if successful.
+		Return None if it can't retrieve a wallpaper.'''
 		requesturl = '{}users/{}/wallpapers/random'.format(self.baseurl,username)
 		r = requests.get(requesturl)
 		if r.status_code == 500 or r.status_code == 404:
@@ -141,54 +176,74 @@ class DesktopprAPI:
 		wallpaper = Wallpaper(r.json()['response'])
 		return wallpaper
 
-	def follow_user(self, username, unfollow=False):
+	def follow_user(self, username):
 		'''This method is privileged. You must authorize before using it.
-		To reverse this method into an unfollow command, set unfollow=True
+		Attempts to follow a user.
+		Returns None if the you haven't authorized against the server yet.
+		Returns True if the follow attempt succeeded.
+		Returns False if the follow attempt failed.'''
+		return self._update_follow(username,'follow')
 
-		This method returns a status code of the result.
-
-		200 = Operation succeeded [even if you already are following and try to follow, or aren't following and try to unfollow]
-		404 = User does not exist
-		'''
+	def unfollow_user(self, username):
+		'''This method is privileged. You must authorize before using it.
+		Attempts to unfollow a user.
+		Returns None if the you haven't authorized against the server yet.
+		Returns True if the unfollow attempt succeeded.
+		Returns False if the unfollow attempt failed.'''
+		return self._update_follow(username,'unfollow')
+	
+	def _update_follow(self,username,action):
+		'''Internal method to handle follow/unfollow requests'''
 		if not self.apikey:
-			print(
+			logging.info(
 				'ERROR: This is a user command. You must first authenticate as a user with authorize_user_pass() or authorize_API() method.')
-			return
+			return None
+		if action!='follow' and action!='unfollow':
+			logging.info('Internal error: Bad command for _update_follow: {}'.format(action))
+			return None
 		r = None
-		if unfollow == False:
-			#,params={'auth_token': self.apikey})
-			r = requests.post(
-				self.baseurl + 'users/' + username + '/follow',
+		if action == 'follow':
+			r = requests.post('{}users/{}/follow'.format(self.baseurl,username),
 				params={'auth_token': self.apikey})
 
-			# if r.status_code!=200:
-			#	print('Abnormal response unfollowing user',username,':',r.status_code)
-		else:
-			r = requests.delete(
-				self.baseurl + 'users/' + username + '/follow',
-				params={'auth_token': self.apikey})
-			print(r)
-			print(r.json())
 			# if r.status_code!=200:
 			#	print('Abnormal response following user',username,':',r.status_code)
-		return r.status_code
+		else:
+			r = requests.delete('{}users/{}/follow'.format(self.baseurl,username),
+				params={'auth_token': self.apikey})
+			# if r.status_code!=200:
+			#	print('Abnormal response unfollowing user',username,':',r.status_code)
+		if r.status_code==200:
+			return True
+		else:
+			return False
 
 
 	def like_wallpaper(self,wallpaper_id):
+		'''This is a privileged method. You must authorize before you can use it.
+		Likes a wallpaper.
+		Returns None if the you haven't authorized against the server yet.
+		Returns True if the like succeeded.
+		Returns  False if the like attempt failed.'''
 		return self.__update_like(wallpaper_id,'like')
 
 	def unlike_wallpaper(self,wallpaper_id):
+		'''This is a privileged method. You must authorize before you can use it.
+		Unlikes a wallpaper.
+		Returns None if the you haven't authorized against the server yet.
+		Returns True if the like succeeded.
+		Returns  False if the like attempt failed.'''
 		return self.__update_like(wallpaper_id,'unlike')
 	
 	def __update_like(self,wallpaper_id,action):
 		'''Internal method to handle like/unlike requests'''
 		if action!='like' and action!='unlike':
-			print('An internal error occured trying to like or unlike a wallpaper.')
-			return
+			logging.info('Internal error: Bad command for _update_like: {}'.format(action))
+			return None
 		if not self.apikey:
-			print(
-				'ERROR: This is a user command. You must first authenticate as a user with authorize_user_pass() or authorize_API() method.')
-			return False
+			#print(
+			#	'ERROR: This is a user command. You must first authenticate as a user with authorize_user_pass() or authorize_API() method.')
+			return None
 		requesturl='{}user/wallpapers/{}/like'.format(self.baseurl,wallpaper_id)
 		auth={'auth_token':self.apikey}
 		r = None
@@ -210,9 +265,9 @@ class DesktopprAPI:
 		r = requests.get('{}users/{}/likes'.format(self.baseurl,username),params = query)
 		print(r.url)
 		if r.status_code!=200:
-			print('Error retrieving liked status:{}',(r.status_code))
+			logging.info('Error retrieving liked status:{}',(r.status_code))
 		liked=r.json()['response']
-		print(liked)
+		logging.info(liked)
 		if liked:
 			return True
 		else:
@@ -220,20 +275,33 @@ class DesktopprAPI:
 
 
 	def sync_wallpaper(self,wallpaper_id):
+		'''This is a privileged method. You must authorize before you can use it.
+		Informs the server that it should start a sync of a wallpaper to a user's dropbox.
+		This checks against the server for wallpapers.
+		Returns None if the you haven't authorized against the server yet.
+		Returns True if a wallpaper was set to sync (or was already synced).
+		Returns False if the HTTP response is not 200 or 422 (already synced)'''
+		
 		return self.__update_sync(wallpaper_id,'sync')
 
 	def unsync_wallpaper(self,wallpaper_id):
+		'''This is a privileged method. You must authorize before you can use it.
+		Informs the server that it should remove a wallpaper from a user's DropBox.
+		This checks against the users DropBox for wallpapers.
+		Returns None if the you haven't authorized against the server yet.
+		Returns True if a wallpaper was set to unsync (or did not exist).
+		Returns False if the HTTP response is not 200 or 404 (Not in user's DropBox)'''
 		return self.__update_sync(wallpaper_id,'unsync')
 	
 	def __update_sync(self,wallpaper_id,action):
 		'''Internal method to handle sync requests'''
 		if action!='sync' and action!='unsync':
-			print('An internal error occured trying to sync or unsync a wallpaper.')
-			return
+			logging.info('Internal error: Bad command for _update_sync: {}'.format(action))
+			return None
 		if not self.apikey:
-			print(
+			logging.info(
 				'ERROR: This is a user command. You must first authenticate as a user with authorize_user_pass() or authorize_API() method.')
-			return False
+			return None
 		requesturl='{}user/wallpapers/{}/selection'.format(self.baseurl,wallpaper_id)
 		auth={'auth_token':self.apikey}
 		r = None
@@ -249,41 +317,49 @@ class DesktopprAPI:
 		return False
 
 	def check_if_synced(self, username, wallpaper_id):
-		'''Checks if a user has a wallpaper currently synced to their dropbox.
-		Returns True if it is, False otherwise.'''
+		'''Checks if a user has a wallpaper currently synced to their personal DropBox.
+		The username is the user to check against.
+		The wallpaper_id is the wallpaper to check for.
+		Returns True if the wallpFalse otherwise.'''
 		query={'wallpaper_id':wallpaper_id}
 		r = requests.get('{}users/{}/wallpapers'.format(self.baseurl,username),params = query)
-		print(r.url)
 		if r.status_code!=200:
-			print('Error retrieving synced status:{}',(r.status_code))
-		synced=r.json()['response']
-		print(synced)
-		if synced:
-			return True
-		else:
-			return False
+			#A logging message will go here.
+			logging.info('Error checking for synced wallpaper: {}'.format(r.status_code))
+			return None
+		synced = None
+		try:
+			synced=r.json()['response']
+		except:
+			return None
+		
+		return True #Json has a response field. 
 		
 
 	def flag_wallpaper(self, wallpaper_id, flag):
-		'''Flags a wallpaper. flag is flag_safe, flag_not_safe, and flag_deletion.
+		'''Flags a wallpaper. 
+		flag must be flag_safe, flag_not_safe, and flag_deletion.
 		This is a privileged method. You must first authenticate with the authorize() methods before 
 		you can use this method.
 		
-		Returns the status code of the post request:
-		200 - Wallpaper successfully flagged
-		404 - Wallpaper was not found
+		Returns None if the you haven't authorized against the server yet or if the flag is invalid.
+		Returns True if the Wallpaper was successfully flagged.
+		Returns False if the Wallpaper was not successfully flagged.
 		'''
 		if flag!='flag_safe' and flag!='flag_not_safe' and flag!='flag_deletion':
-			print('ERROR: Flag must be flag_safe, flag_not_safe, or flag_deletion')
-			return
+			logging.info('ERROR: Flag must be flag_safe, flag_not_safe, or flag_deletion')
+			return None
 		if not self.apikey:
 			print(
 				'ERROR: This is a user command. You must first authenticate as a user with authorize_user_pass() or authorize_API() method.')
 			return
-		requesturl = '%swallpapers/%s/%s' % (self.baseurl,wallpaper_id,flag)
+		requesturl = '{}wallpapers/{}/{}'.format(self.baseurl,wallpaper_id,flag)
 		print(requesturl)
 		r = requests.post(requesturl,params = {'auth_token': self.apikey})
-		return r.status_code
+		if r.status_code==200:
+			return True
+		else:
+			return False
 
 
 class Wallpaper:
@@ -292,7 +368,7 @@ class Wallpaper:
 
 	def __init__(self,info=None):
 		'''Predefined wallpaper attributes. These are elements in the returned
-		json response when querying for an attribute.
+		json response when querying for a wallpaper.
 		'''
 		
 		#Set wallpaper defaults
@@ -311,8 +387,12 @@ class Wallpaper:
 		
 		if info:
 			#We are going to parse a new wallpaper json
-			for key in info:
-				setattr(self, key, info[key])
+			for attribute in info:
+				if isinstance(info[attribute],dict):
+					#it's an image object.
+					setattr(self,attribute,Image(info[attribute]))
+					continue
+				setattr(self, attribute, info[attribute])
 
 	def __str__(self):
 		string = 'Wallpaper object: '
@@ -320,9 +400,75 @@ class Wallpaper:
 		for attr in dir(self):
 			if not callable(attr) and not attr.startswith('__'):
 				props.append(attr + '=' + str(getattr(self, attr)))
+		return '{}{}'.format(string,str(props))
+
+class User:
+	'''Defines a user on the site.'''
+	def __init__(self,info=None):
+		'''Predefined user attributes. These are elements in the returned
+		json response when querying for a user. If you pass an info dictionary 
+		(only if its a user from the site), it will automatically fill these values.'''
+		
+		self.uploaded_count = None
+		self.followers_count = None
+		self.username = None
+		self.lifetime_member = None
+		self.avatar_url = None
+		self.wallpapers_count = None
+		self.created_at = None
+		self.following_count = None
+		self.name = None
+		
+		#If an information package was included, create this user.
+		if info:
+			for attribute in info:
+				#There are no dictionaries in the response for a user.
+				setattr(self, attribute, info[attribute])
+		
+		
+	def __str__(self):
+		string = 'User object: '
+		props = []
+		for attr in dir(self):
+			if not callable(attr) and not attr.startswith('__'):
+				props.append(attr + '=' + str(getattr(self, attr)))
 		return string + str(props)
 
-
+class Image:
+	'''Represents an image object (a part of a wallpaper object). It will either contain only a url or a url, width and height, and another Image object..
+	Width and Height attributes signify that this is a preview or a thumbnail image.'''
+	
+	def __init__(self,info=None):
+		for key in info:
+			print('self.{} = None'.format(key))
+		self.thumb = None
+		self.preview = None
+		self.url = None
+		self.width = None
+		self.height = None
+		
+		
+		if info:
+			#Parsing image package - it might be the top level one (full) or lower (preview/thumbnail)
+			for attribute in info:
+				if isinstance(info[attribute],dict):
+					#it's an image object.
+					setattr(self,attribute,Image(info[attribute]))
+					continue
+				setattr(self, attribute, info[attribute])
+		
+	def __str__(self):
+		string = None
+		if self.width:
+			string = 'Image [Thumbnail/Preview] Object: '
+		if self.preview:
+			string = 'Image [Full] Object: '
+		props = []
+		for attr in dir(self):
+			if not callable(attr) and not attr.startswith('__'):
+				props.append(attr + '=' + str(getattr(self, attr)))
+		return string + str(props)
+	
 def _get_userpass():
 	'''Prompt for username and password.'''
 
@@ -333,14 +479,27 @@ def _get_userpass():
 
 if __name__ == '__main__':
 	api = DesktopprAPI()
+	#user=api.get_user_info('mgamerz')
+	users = api.get_user_followers('keithpitt')
+	for user in users:
+		print(user)
+	exit()
+	for key in user:
+		print('self.{} = None'.format(key))
+	#First we test privledged commands before we authenticate to make sure they fail properly.
+	api.like_wallpaper(200)
+	api.unlike_wallpaper(201)
+	api.sync_wallpaper(202)
+	api.unsync_wallpaper(203)
+	
+	exit()
 	# test authorization techniques
-	'''
 	userpass = _get_userpass()
 	if api.authorize_user_pass(userpass[0], userpass[1]):
 		print('Username/Password Authorization successful')
 	else:
 		print('Username/Password Authorization failed')
-	'''
+	
 	wallpaper = api.get_user_randomwallpaper('keithpitt')
 	if wallpaper:
 		print(wallpaper.image['url'])
@@ -381,7 +540,7 @@ if __name__ == '__main__':
 		print('Follow user failed:', followresponse)
 
 	# test userinfo queries
-	print(api.get_user_info('keithpitt'))
+	
 	print(api.get_user_collection('keithpitt'))
 
 	# test get wallpaper info pages
