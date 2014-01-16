@@ -441,8 +441,6 @@ class Image:
 	Width and Height attributes signify that this is a preview or a thumbnail image.'''
 	
 	def __init__(self,info=None):
-		for key in info:
-			print('self.{} = None'.format(key))
 		self.thumb = None
 		self.preview = None
 		self.url = None
