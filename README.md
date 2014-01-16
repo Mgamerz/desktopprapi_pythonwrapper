@@ -1,4 +1,4 @@
-Python 3.3 Wrapper for Desktoppr.co Public API
+Python 3.2+ Wrapper for Desktoppr.co Public API
 ==========================
 [![Build Status](https://travis-ci.org/Mgamerz/desktopprapi_pythonwrapper.png?branch=master)](https://travis-ci.org/Mgamerz/desktopprapi_pythonwrapper)
 
