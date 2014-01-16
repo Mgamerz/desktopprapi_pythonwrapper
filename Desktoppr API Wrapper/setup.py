@@ -7,7 +7,7 @@ MODULE_NAME = 'DesktopprApi'
 
 print (os.path.join(os.path.dirname(__file__)))
 print()
-README = open('{}/README.md'.format(os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir)))).read()
+README = open('{}/README.md'.format(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))).read()
 VERSION = re.search("__version__ = '([^']+)'",
                     open('{0}.py'.format(MODULE_NAME)).read()).group(1)
 
