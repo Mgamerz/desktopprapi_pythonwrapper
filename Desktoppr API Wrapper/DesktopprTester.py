@@ -30,6 +30,14 @@ class Test(unittest.TestCase):
         api = DesktopprAPI()
         self.assertTrue(api.check_if_liked('mgamerz',418047))
         self.assertFalse(api.check_if_liked('mgamerz',41804700))
+        
+    def testFollowers(self):
+        api = DesktopprAPI()
+        
+        pass
+    
+    def testFollowing(self):
+        pass
 
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testNoauth']

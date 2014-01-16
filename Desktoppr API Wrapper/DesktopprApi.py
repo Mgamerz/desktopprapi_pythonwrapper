@@ -26,7 +26,7 @@ class DesktopprAPI:
 		'''
 		query = {'auth_token': apikey}
 		requesturl = '{}user/whoami'.format(self.baseurl)
-		r = requests.get(requesturl,params=query)
+		r = requests.get(requesturl,params=query,headers={'Connection':'close'})
 		if r.status_code == 200:
 			logging.info('Authenticated as {}'.format(r.json()['response']['username']))
 			self.apikey = apikey
@@ -43,7 +43,7 @@ class DesktopprAPI:
 			'https://api.desktoppr.co/1/user/whoami',
 			auth=HTTPBasicAuth(
 				username,
-				password))
+				password),headers={'Connection':'close'})
 		if r.status_code == 200:
 			self.apikey = r.json()['response']['api_token']
 			logging.info('Authenticated, storing API token')
@@ -59,7 +59,7 @@ class DesktopprAPI:
 		requesturl = self.baseurl + query
 		response = None
 		try:
-			response = requests.get(requesturl).json()['response']
+			response = requests.get(requesturl,headers={'Connection':'close'}).json()['response']
 		except Exception as e:
 			#Put a logging message here
 			logging.info('Error retrieving information for user {}: {}'.format(username, e))
@@ -72,7 +72,7 @@ class DesktopprAPI:
 		requesturl = '{}users/{}/wallpapers'.format(self.baseurl,username)
 		response = None
 		try:
-			response = requests.get(requesturl).json()['response']
+			response = requests.get(requesturl,headers={'Connection':'close'}).json()['response']
 		except Exception as e:
 			logging.info('Error retrieving wallpaper collection for user {}: {}'.format(username,e))
 		return response
@@ -96,7 +96,7 @@ class DesktopprAPI:
 			return
 		query = {'page': str(page), 'safe_filter': safefilter}
 		requesturl = '{}/wallpapers'.format((self.baseurl))
-		response = requests.get(requesturl,params=query)
+		response = requests.get(requesturl,params=query,headers={'Connection':'close'})
 		if response.status_code == 200:
 			# Build wallpaper object
 			wallpapers = []
@@ -135,7 +135,7 @@ class DesktopprAPI:
 		Returns a list of User objects otherwise.'''
 		requesturl = '{}users/{}/followers'.format(self.baseurl,username)
 		query={'page':page}
-		r = requests.get(requesturl,params=query)
+		r = requests.get(requesturl,params=query,headers={'Connection':'close'})
 		if r.status_code==200:
 			users = []
 			userlist = r.json()['response']
@@ -152,7 +152,7 @@ class DesktopprAPI:
 		Returns a list of User objects otherwise.'''
 		requesturl = '{}users/{}/following'.format(self.baseurl,username)
 		query={'page':page}
-		r = requests.get(requesturl,params=query)
+		r = requests.get(requesturl,params=query,headers={'Connection':'close'})
 		if r.status_code==200:
 			users = []
 			userlist = r.json()['response']
@@ -167,7 +167,7 @@ class DesktopprAPI:
 		Returns a Wallpaper object if successful.
 		Return None if it can't retrieve a wallpaper.'''
 		requesturl = '{}users/{}/wallpapers/random'.format(self.baseurl,username)
-		r = requests.get(requesturl)
+		r = requests.get(requesturl,headers={'Connection':'close'})
 		if r.status_code == 500 or r.status_code == 404:
 			#error occured
 			print(r.url)
@@ -262,7 +262,7 @@ class DesktopprAPI:
 		'''Checks if a user has liked a wallpaper.
 		Returns True if it is, False otherwise.'''
 		query={'wallpaper_id':wallpaper_id}
-		r = requests.get('{}users/{}/likes'.format(self.baseurl,username),params = query)
+		r = requests.get('{}users/{}/likes'.format(self.baseurl,username),params = query,headers={'Connection':'close'})
 		print(r.url)
 		if r.status_code!=200:
 			logging.info('Error retrieving liked status:{}',(r.status_code))
@@ -324,7 +324,7 @@ class DesktopprAPI:
 		if they unlink it, the server won't consider those synced anymore, even though they do on the website and the dropbox folder.)
 		Returns False otherwise.'''
 		query={'wallpaper_id':wallpaper_id}
-		r = requests.get('{}users/{}/wallpapers'.format(self.baseurl,username),params = query)
+		r = requests.get('{}users/{}/wallpapers'.format(self.baseurl,username),params = query,headers={'Connection':'close'})
 		if r.status_code!=200:
 			#A logging message will go here.
 			logging.info('Error checking for synced wallpaper: {}'.format(r.status_code))
