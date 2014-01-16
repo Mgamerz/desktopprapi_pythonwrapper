@@ -63,6 +63,7 @@ class DesktopprAPI:
 		except Exception as e:
 			#Put a logging message here
 			logging.info('Error retrieving information for user {}: {}'.format(username, e))
+			return None
 		return User(response)
 
 	def get_user_collection(self, username):

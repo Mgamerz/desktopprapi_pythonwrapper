@@ -33,7 +33,10 @@ class Test(unittest.TestCase):
         
     def testFollowers(self):
         api=DesktopprApi.DesktopprAPI()
-        pass
+        userlist = (('keithpitt',True),('mgamerz',True),('assert_fails_test',False)) #add others here for more extensive testing.
+        for user, expected in userlist:
+            print(user,expected)
+            self.assertEquals(isinstance(api.get_user_info(user),DesktopprApi.User),expected)
     
     def testFollowing(self):
         pass
