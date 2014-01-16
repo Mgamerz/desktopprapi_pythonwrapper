@@ -148,7 +148,7 @@ class DesktopprAPI:
 			return None
 	
 	def get_followed_users(self,username,page=1):
-		'''Gets a dictionary list of users a specific user follows.
+		'''Gets a list of User objects who the specified user follows..
 		Returns None if the user follows noone, the user cannot be found, or an error occurs.
 		Returns a list of User objects otherwise.'''
 		requesturl = '{}users/{}/following'.format(self.baseurl,username)
@@ -158,7 +158,7 @@ class DesktopprAPI:
 			users = []
 			userlist = r.json()['response']
 			for user in userlist:
-				users.append(user)
+				users.append(User(user))
 			return users
 		else:
 			logging.info('Unable to retrieve following list: {}'.format(r.status_code))

@@ -31,15 +31,25 @@ class Test(unittest.TestCase):
         self.assertTrue(api.check_if_liked('mgamerz',418047))
         self.assertFalse(api.check_if_liked('mgamerz',41804700))
         
-    def testFollowers(self):
+    def testUserinfo(self):
         api=DesktopprApi.DesktopprAPI()
         userlist = (('keithpitt',True),('mgamerz',True),('assert_fails_test',False)) #add others here for more extensive testing.
         for user, expected in userlist:
-            print(user,expected)
             self.assertEquals(isinstance(api.get_user_info(user),DesktopprApi.User),expected)
     
     def testFollowing(self):
-        pass
+        api=DesktopprApi.DesktopprAPI()
+        userlist = (('keithpitt',True),('mgamerz',True),('assert_fails_test',False)) #add others here for more extensive testing.
+        for username, expected in userlist:
+            users = api.get_followed_users(username)
+            if expected==True:
+                for user in users:
+                    self.assertTrue(isinstance(user,DesktopprApi.User),expected)
+            else:
+                #We don't expect a user object.
+                if users:
+                    self.fail('Userlist should be None')
+            
     
     def testRandomUserwallpaper(self):
         api=DesktopprApi.DesktopprAPI()
