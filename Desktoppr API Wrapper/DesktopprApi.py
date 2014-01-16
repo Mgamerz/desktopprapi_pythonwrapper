@@ -13,7 +13,7 @@ from requests.auth import HTTPBasicAuth
 
 
 class DesktopprAPI:
-
+	__VERSION__='1.0b'
 	'''
 	This class allows you to create an object that allows you to query the desktoppr site using their public api.
 	'''
