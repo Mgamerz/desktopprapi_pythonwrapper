@@ -22,6 +22,6 @@ setup(name=MODULE_NAME,
       license='GPL v3',
       long_description=README,
       py_modules=[MODULE_NAME, 'DesktopprTester'],
-      test_suite='Desktoppr\ Api\ Wrapper/DesktopprTester',
+      test_suite='DesktopprTester',
       url='https://github.com/mgamerz/desktopprapi_pythonwrapper',
       version=VERSION)
