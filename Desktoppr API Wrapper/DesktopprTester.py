@@ -22,9 +22,14 @@ class Test(unittest.TestCase):
         
     def testSyncStatus(self):
         api = DesktopprAPI()
-        self.assertTrue(api.check_if_synced('mgamerz',18028))
+        self.assertTrue(api.check_if_synced('mgamerz',26167))
+        self.assertFalse(api.check_if_synced('mgamerz',124089))
+        self.assertFalse(api.check_if_synced('mgamerz',1240890000))
     #More tests to be written.
-
+    def testLikeStatus(self):
+        api = DesktopprAPI()
+        self.assertTrue(api.check_if_liked('mgamerz',418047))
+        self.assertFalse(api.check_if_liked('mgamerz',41804700))
 
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testNoauth']

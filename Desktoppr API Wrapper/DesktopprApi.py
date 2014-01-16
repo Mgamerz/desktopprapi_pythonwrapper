@@ -320,7 +320,9 @@ class DesktopprAPI:
 		'''Checks if a user has a wallpaper currently synced to their personal DropBox.
 		The username is the user to check against.
 		The wallpaper_id is the wallpaper to check for.
-		Returns True if the wallpFalse otherwise.'''
+		Returns True if the wallpaper exists in the user's dropbox(since they linked it - 
+		if they unlink it, the server won't consider those synced anymore, even though they do on the website and the dropbox folder.)
+		Returns False otherwise.'''
 		query={'wallpaper_id':wallpaper_id}
 		r = requests.get('{}users/{}/wallpapers'.format(self.baseurl,username),params = query)
 		if r.status_code!=200:
@@ -329,11 +331,14 @@ class DesktopprAPI:
 			return None
 		synced = None
 		try:
-			synced=r.json()['response']
+			synced=r.json()['count']
+			print(synced)
+			if synced > 0:
+				return True
+			else:
+				return False
 		except:
 			return None
-		
-		return True #Json has a response field. 
 		
 
 	def flag_wallpaper(self, wallpaper_id, flag):
@@ -478,26 +483,25 @@ def _get_userpass():
 
 if __name__ == '__main__':
 	api = DesktopprAPI()
-	#user=api.get_user_info('mgamerz')
-	users = api.get_user_followers('keithpitt')
-	for user in users:
-		print(user)
-	exit()
-	for key in user:
-		print('self.{} = None'.format(key))
-	#First we test privledged commands before we authenticate to make sure they fail properly.
-	api.like_wallpaper(200)
-	api.unlike_wallpaper(201)
-	api.sync_wallpaper(202)
-	api.unsync_wallpaper(203)
-	
-	exit()
+
 	# test authorization techniques
 	userpass = _get_userpass()
 	if api.authorize_user_pass(userpass[0], userpass[1]):
 		print('Username/Password Authorization successful')
 	else:
 		print('Username/Password Authorization failed')
+	
+	if api.sync_wallpaper(26167):
+		print('Wallpaper should sync shortly.')
+	else:
+		print('Error trying to sync wallpaper.')
+		
+	if api.check_if_synced('mgamerz',26167):
+		print('Wallpaper should sync shortly.')
+	else:
+		print('Error trying to sync wallpaper.')
+	exit()
+	exit()
 	
 	wallpaper = api.get_user_randomwallpaper('keithpitt')
 	if wallpaper:
@@ -539,7 +543,20 @@ if __name__ == '__main__':
 		print('Follow user failed:', followresponse)
 
 	# test userinfo queries
+		#user=api.get_user_info('mgamerz')
+	users = api.get_user_followers('keithpitt')
+	for user in users:
+		print(user)
+	exit()
+	for key in user:
+		print('self.{} = None'.format(key))
+	#First we test privledged commands before we authenticate to make sure they fail properly.
+	api.like_wallpaper(200)
+	api.unlike_wallpaper(201)
+	api.sync_wallpaper(202)
+	api.unsync_wallpaper(203)
 	
+	exit()
 	print(api.get_user_collection('keithpitt'))
 
 	# test get wallpaper info pages
