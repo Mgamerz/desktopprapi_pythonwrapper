@@ -263,7 +263,6 @@ class DesktopprAPI:
 		Returns True if it is, False otherwise.'''
 		query={'wallpaper_id':wallpaper_id}
 		r = requests.get('{}users/{}/likes'.format(self.baseurl,username),params = query,headers={'Connection':'close'})
-		print(r.url)
 		if r.status_code!=200:
 			logging.info('Error retrieving liked status:{}',(r.status_code))
 		liked=r.json()['response']
@@ -332,7 +331,6 @@ class DesktopprAPI:
 		synced = None
 		try:
 			synced=r.json()['count']
-			print(synced)
 			if synced > 0:
 				return True
 			else:
