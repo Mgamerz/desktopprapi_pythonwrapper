@@ -10,7 +10,7 @@ VERSION = re.search("__version__ = '([^']+)'",
                     open('{0}.py'.format(MODULE_NAME)).read()).group(1)
 
 setup(name=MODULE_NAME,
-      author='Bryce Boe',
+      author='Michael Perez',
       author_email='developer.mgamerzproductions@gmail.com',
       classifiers=['Intended Audience :: Developers',
                    'License :: OSI Approved :: GPL v3',
