@@ -24,4 +24,4 @@ setup(name=MODULE_NAME,
       py_modules=[MODULE_NAME, 'DesktopprTester'],
       test_suite='DesktopprTester',
       url='https://github.com/mgamerz/desktopprapi_pythonwrapper',
-      version=1.0b)
+      version=VERSION)
