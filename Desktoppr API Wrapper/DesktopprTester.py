@@ -70,6 +70,9 @@ class Test(unittest.TestCase):
         for whocares in range(6):
             wp = api.get_random_wallpaper()
             user = wp.uploader
+            if not user:
+                #Null checking
+                print(wp)
             userinfo = api.get_user_info(user)
             self.assertTrue(isinstance(userinfo, DesktopprApi.User))
 

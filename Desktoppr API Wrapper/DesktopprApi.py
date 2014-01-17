@@ -66,11 +66,9 @@ class DesktopprAPI:
 
         @param username: User to query for information
         '''
-        query = 'users/' + username
-        requesturl = self.baseurl + query
-        response = None
+        requesturl = '{}users/{}'.format(self.baseurl, username)
         try:
-            response = requests.get(requesturl,headers={'Connection':'close'}).json()['response']
+            response = requests.get(requesturl, headers={'Connection': 'close'}).json()['response']
         except Exception as e:
             #Put a logging message here
             logging.info('Error retrieving information for user {}: {}'.format(username, e))
@@ -155,8 +153,8 @@ class DesktopprAPI:
         Returns None if the user has no followers, cannot be found, or an error occurs.
         Returns a list of User objects otherwise.'''
         requesturl = '{}users/{}/followers'.format(self.baseurl,username)
-        query={'page':page}
-        r = requests.get(requesturl,params=query,headers={'Connection':'close'})
+        query = {'page':page}
+        r = requests.get(requesturl, params=query, headers={'Connection':'close'})
         if r.status_code==200:
             users = []
             userlist = r.json()['response']
