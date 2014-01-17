@@ -115,7 +115,7 @@ class Test(unittest.TestCase):
 
     def testWallpaperUrls(self):
         api = DesktopprApi.DesktopprAPI()
-        urls = api.get_wallpapers_url()
+        urls = api.get_wallpaper_urls()
         for url in urls:
             r = requests.head(url)
             self.assertTrue(r.status_code == 200)
