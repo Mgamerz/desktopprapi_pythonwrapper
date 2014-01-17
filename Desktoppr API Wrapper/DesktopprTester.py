@@ -45,11 +45,16 @@ class Test(unittest.TestCase):
             api.sync_wallpaper(paper.id)
             synced.append(paper.id)
 
-        logging.warning('Waiting for Dropbox to sync.')
-        time.sleep(10) #let dropbox sync
+        logging.warning('Waiting for Dropbox transfer wallpapers for sync test.')
+        time.sleep(7) #let dropbox sync
         for sync in synced:
             self.assertTrue(api.check_if_synced(api.authed_user, sync))
+            self.assertTrue(api.unsync_wallpaper(sync))
 
+        logging.warning('Waiting for Dropbox to remove wallpapers.')
+        time.sleep(5)
+        for sync in synced:
+            self.assertFalse(api.check_if_synced(api.authed_user, sync))
         self.assertFalse(api.check_if_synced('mgamerz', 26167))
         self.assertFalse(api.check_if_synced('mgamerz', 124089))
         self.assertFalse(api.check_if_synced('mgamerz', 1240890000))
