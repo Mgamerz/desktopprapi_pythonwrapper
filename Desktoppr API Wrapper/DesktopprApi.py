@@ -75,7 +75,7 @@ class DesktopprAPI:
             return None
         return User(response)
 
-    def get_user_collection(self, username):
+    def get_user_collection(self, username, page=1):
         '''Get a list of Wallpaper objects defining ones in a users collection.
 
         Returns None if an error occurs (no wallpapers, invalid user...)
@@ -83,8 +83,9 @@ class DesktopprAPI:
 
         @param username: User to query for information
         '''
-        requesturl = '{}users/{}/wallpapers'.format(self.baseurl,username)
-        r = requests.get(requesturl,headers={'Connection':'close'})
+        query = {'page': page}
+        requesturl = '{}users/{}/wallpapers'.format(self.baseurl, username)
+        r = requests.get(requesturl, params=query, headers={'Connection':'close'})
         if r.status_code != 200:
             logging.info('Abnormal response code when retreiving user collection: {}'.format(r.status_code))
             return None

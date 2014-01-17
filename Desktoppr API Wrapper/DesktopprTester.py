@@ -14,7 +14,7 @@ class Test(unittest.TestCase):
 
 
     def testNoauth(self):
-        api=DesktopprApi.DesktopprAPI()
+        api = DesktopprApi.DesktopprAPI()
         self.assertEqual(api.like_wallpaper(200), None)
         self.assertEqual(api.unlike_wallpaper(201), None)
         self.assertEqual(api.sync_wallpaper(202), None)
@@ -83,7 +83,6 @@ class Test(unittest.TestCase):
     
     def testFollowing(self):
         api = DesktopprApi.DesktopprAPI()
-        #TODO: Use random wallpaper to find users instead for more strenous testing
         for whocares in range(6):
             wp = api.get_random_wallpaper()
             user = wp.uploader
@@ -129,7 +128,7 @@ class Test(unittest.TestCase):
             self.assertTrue(api.flag_wallpaper(safe, 'flag_safe'))
 
         for nsfw in known_nsfw_wallpapers:
-            self.assertTrue(api.flag_wallpaper(safe, 'flag_not_safe'))
+            self.assertTrue(api.flag_wallpaper(nsfw, 'flag_not_safe'))
 
         #Test flags on wallpapers that don't exist
         for whocares in range(6):
