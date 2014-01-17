@@ -84,16 +84,16 @@ class Test(unittest.TestCase):
     def testFollowing(self):
         api = DesktopprApi.DesktopprAPI()
         #TODO: Use random wallpaper to find users instead for more strenous testing
-        userlist = (('keithpitt', True), ('mgamerz', True), ('assert_fails_test', False)) #add others here for more extensive testing.
-        for username, expected in userlist:
-            users = api.get_followed_users(username)
-            if expected is True:
+        for whocares in range(6):
+            wp = api.get_random_wallpaper()
+            user = wp.uploader
+            if not user:
+                #Null checking
+                print(wp)
+            users = api.get_followed_users(user)
+            if users:
                 for user in users:
-                    self.assertTrue(isinstance(user, DesktopprApi.User), expected)
-            else:
-                #We don't expect a user object.
-                if users:
-                    self.fail('Userlist should be None')
+                    self.assertTrue(isinstance(user, DesktopprApi.User))
 
     def testAuthorization(self):
         #It's not really safe to put in my real username and password here.
