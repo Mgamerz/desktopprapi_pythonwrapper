@@ -316,7 +316,7 @@ class DesktopprAPI:
         Returns None if an error occurs (user doesn't exist, etc).
         Returns True if the user has liked the wallpaper.
         Returns False if the user hasn't liked the wallpaper.'''
-        query={'wallpaper_id': wallpaper_id}
+        query = {'wallpaper_id': wallpaper_id}
         r = requests.get('{}users/{}/likes'.format(self.baseurl, username), params=query, headers={'Connection': 'close'})
         if r.status_code != 200:
             logging.info('Error retrieving liked status:{}', r.status_code)
@@ -441,7 +441,7 @@ class Wallpaper:
 
     '''Items are put into this dynamically, and it has no methods.'''
 
-    def __init__(self,info=None):
+    def __init__(self, info=None):
         '''Predefined wallpaper attributes. These are elements in the returned
         json response when querying for a wallpaper.'''
 
@@ -462,10 +462,12 @@ class Wallpaper:
         if info:
             #We are going to parse a new wallpaper json
             for attribute in info:
-                if isinstance(info[attribute],dict):
+                if isinstance(info[attribute], dict):
                     #it's an image object.
-                    setattr(self,attribute,Image(info[attribute]))
+                    setattr(self, attribute, Image(info[attribute]))
                     continue
+                if attribute == 'image':
+                    print('Image attribute: {}',info[attribute])
                 setattr(self, attribute, info[attribute])
 
     def __str__(self):
