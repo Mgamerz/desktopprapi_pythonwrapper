@@ -148,8 +148,7 @@ class DesktopprAPI:
         urls = []
         if wallpapers:
             for wallpaper in wallpapers:
-                print(wallpaper)
-                #urls.append(wallpaper.image.url)
+                urls.append(wallpaper.image.url)
         return urls
 
     def get_user_followers(self, username, page=1):
@@ -462,12 +461,13 @@ class Wallpaper:
         if info:
             #We are going to parse a new wallpaper json
             for attribute in info:
+                if attribute == 'preview':
+                    print('preview attribute: {}', info[attribute])
                 if isinstance(info[attribute], dict):
                     #it's an image object.
+                    logging.info('Attaching Image object to wallpaper instance.')
                     setattr(self, attribute, Image(info[attribute]))
                     continue
-                if attribute == 'image':
-                    print('Image attribute: {}',info[attribute])
                 setattr(self, attribute, info[attribute])
 
     def __str__(self):
@@ -520,7 +520,7 @@ class Image:
         self.url = None
         self.width = None
         self.height = None
-
+        logging.info('Creating new image object.')
 
         if info:
             #Parsing image package - it might be the top level one (full) or lower (preview/thumbnail)
