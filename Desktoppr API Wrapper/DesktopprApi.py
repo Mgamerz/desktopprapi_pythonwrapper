@@ -133,9 +133,11 @@ class DesktopprAPI:
             logging.info('Error getting wallpapers:', response.status_code)
             return
 
-    def get_wallpapers_url(self, page=1, safefilter='safe'):
+    def get_wallpaper_urls(self, page=1, safefilter='safe'):
         '''This is a subset of get_wallpapers(), which returns a page of wallpaper URLs. The API does not document sorting options.
         It uses the same interface as get_wallpapers.
+
+        Returns a list of wallpaper URLs as strings.
         '''
         if safefilter != 'safe' and safefilter != 'include_pending' and safefilter != 'all':
             logging.warning(
@@ -537,113 +539,3 @@ class Image:
             if not callable(attr) and not attr.startswith('__'):
                 props.append(attr + '=' + str(getattr(self, attr)))
         return string + str(props)
-
-def _get_userpass():
-    '''Prompt for username and password.'''
-
-    print('Username: ', end='')
-    username = input()
-    password = getpass.getpass()
-    return (username, password)
-
-if __name__ == '__main__':
-    api = DesktopprAPI()
-
-    # test authorization techniques
-    userpass = _get_userpass()
-    if api.authorize_user_pass(userpass[0], userpass[1]):
-        print('Username/Password Authorization successful')
-    else:
-        print('Username/Password Authorization failed')
-
-    if api.sync_wallpaper(26167):
-        print('Wallpaper should sync shortly.')
-    else:
-        print('Error trying to sync wallpaper.')
-
-    if api.check_if_synced('mgamerz',26167):
-        print('Wallpaper should sync shortly.')
-    else:
-        print('Error trying to sync wallpaper.')
-    exit()
-    exit()
-
-    wallpaper = api.get_user_randomwallpaper('keithpitt')
-    if wallpaper:
-        print(wallpaper.image['url'])
-    else:
-        print('Error!')
-    exit()
-    #test for wallpaper sync
-    if	api.check_if_synced('keithpitt',256167):
-        print('User has synced wallpaper')
-    else:
-        print('User has not synced wallpaper 417841')
-
-    if api.check_if_synced('mgamerz',418045):
-        print('User has synced wallpaper')
-    else:
-        print('User has not synced wallpaper 417841')
-
-    if api.unsync_wallpaper(256167):
-        print('Wallpaper should sync shortly.')
-    else:
-        print('Error trying to sync wallpaper.')
-    exit()
-
-    if api.authorize_API('YOUR API KEY HERE'):
-        print('API Authorization successful')
-    else:
-        print('API Authorization failed')
-
-    #Test flagging
-    api.flag_wallpaper(418232,'flag_not_safe')
-
-
-    # test follow/unfollow users
-    followresponse = api.follow_user('nermil')
-    if followresponse == 200:
-        print('Follow user succeeded')
-    else:
-        print('Follow user failed:', followresponse)
-
-    # test userinfo queries
-        #user=api.get_user_info('mgamerz')
-    users = api.get_user_followers('keithpitt')
-    for user in users:
-        print(user)
-    exit()
-    for key in user:
-        print('self.{} = None'.format(key))
-    #First we test privledged commands before we authenticate to make sure they fail properly.
-    api.like_wallpaper(200)
-    api.unlike_wallpaper(201)
-    api.sync_wallpaper(202)
-    api.unsync_wallpaper(203)
-
-    exit()
-    print(api.get_user_collection('keithpitt'))
-
-    # test get wallpaper info pages
-    wallpapers = api.get_wallpapers(2)
-    for paper in wallpapers:
-        print(paper)
-    print(api.get_user_random_wallpaper('keithpitt'))
-    print(api.get_user_random_wallpaper('mgamerz'))
-    print(api.get_user_random_wallpaper('mgamerzsg'))
-
-    if api.follow_user('keithpittz', unfollow=True) == 200:
-        print('Unfollow user succeeded')
-    else:
-        print('Unfollow user failed')
-
-    # test fetching wallpaper urls
-    images = api.get_wallpapers_url()
-    number = 0
-    # test downloading wallpapers (only a few)
-    for image in images:
-        if number < 5:
-            g = urllib.request.urlopen(image)
-            number += 1
-            with open('image' + str(number) + '.jpg', 'b+w') as f:
-                f.write(g.read())

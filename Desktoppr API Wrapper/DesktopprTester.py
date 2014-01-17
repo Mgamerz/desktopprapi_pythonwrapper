@@ -8,6 +8,7 @@ import time
 import logging
 import random
 import DesktopprApi
+import requests
 
 testing_apikey = 'HCsYzq284U11q7ZfiH-s'
 class Test(unittest.TestCase):
@@ -29,7 +30,7 @@ class Test(unittest.TestCase):
         api = DesktopprApi.DesktopprAPI()
         api.authorize_API(testing_apikey)
         liked = []
-        for whocares in range(6):
+        for _ in range(6):
             paper = api.get_random_wallpaper()
             api.like_wallpaper(paper.id)
             liked.append(paper.id)
@@ -40,7 +41,7 @@ class Test(unittest.TestCase):
         api = DesktopprApi.DesktopprAPI()
         api.authorize_API(testing_apikey)
         synced = []
-        for whocares in range(6):
+        for _ in range(6):
             paper = api.get_random_wallpaper()
             api.sync_wallpaper(paper.id)
             synced.append(paper.id)
@@ -67,7 +68,7 @@ class Test(unittest.TestCase):
         
     def testUserinfo(self):
         api = DesktopprApi.DesktopprAPI()
-        for whocares in range(6):
+        for _ in range(6):
             wp = api.get_random_wallpaper()
             user = wp.uploader
             if not user:
@@ -83,7 +84,7 @@ class Test(unittest.TestCase):
     
     def testFollowing(self):
         api = DesktopprApi.DesktopprAPI()
-        for whocares in range(6):
+        for _ in range(6):
             wp = api.get_random_wallpaper()
             user = wp.uploader
             if not user:
@@ -105,12 +106,19 @@ class Test(unittest.TestCase):
 
     def testRandomUserwallpaper(self):
         api = DesktopprApi.DesktopprAPI()
-        for whocares in range(6):
+        for _ in range(6):
             wp = api.get_user_randomwallpaper('keithpitt')
             self.assertTrue(isinstance(wp, DesktopprApi.Wallpaper))
             self.assertTrue(isinstance(wp.image, DesktopprApi.Image))
             self.assertTrue(isinstance(wp.image.thumb, DesktopprApi.Image))
             self.assertTrue(isinstance(wp.image.preview, DesktopprApi.Image))
+
+    def testWallpaperUrls(self):
+        api = DesktopprApi.DesktopprAPI()
+        urls = api.get_wallpapers_url()
+        for url in urls:
+            r = requests.head(url)
+            self.assertTrue(r.status_code == 200)
 
     def testFlagging(self):
         '''This test uses hard coded values, as I don't want to flag random wallpapers as safe/unsafe
@@ -131,7 +139,8 @@ class Test(unittest.TestCase):
             self.assertTrue(api.flag_wallpaper(nsfw, 'flag_not_safe'))
 
         #Test flags on wallpapers that don't exist
-        for whocares in range(6):
+        for _ in range(6):
+            #these wallpapers don't exist. Should return false.
             self.assertFalse(api.flag_wallpaper(random.randint(9000000, 90000000), 'flag_safe'))
 
 
