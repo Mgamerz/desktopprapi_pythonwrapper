@@ -148,7 +148,8 @@ class DesktopprAPI:
         urls = []
         if wallpapers:
             for wallpaper in wallpapers:
-                urls.append(wallpaper.image.url)
+                print(wallpaper)
+                #urls.append(wallpaper.image.url)
         return urls
 
     def get_user_followers(self, username, page=1):
