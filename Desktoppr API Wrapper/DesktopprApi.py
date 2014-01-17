@@ -48,7 +48,7 @@ class DesktopprAPI:
             'https://api.desktoppr.co/1/user/whoami',
             auth=HTTPBasicAuth(
                 username,
-                password),headers={'Connection':'close'})
+                password), headers={'Connection': 'close'})
         if r.status_code == 200:
             json = r.json()['response']
             self.apikey = json['api_token']
@@ -85,7 +85,7 @@ class DesktopprAPI:
         '''
         query = {'page': page}
         requesturl = '{}users/{}/wallpapers'.format(self.baseurl, username)
-        r = requests.get(requesturl, params=query, headers={'Connection':'close'})
+        r = requests.get(requesturl, params=query, headers={'Connection': 'close'})
         if r.status_code != 200:
             logging.info('Abnormal response code when retreiving user collection: {}'.format(r.status_code))
             return None
@@ -119,7 +119,7 @@ class DesktopprAPI:
             return
         query = {'page': str(page), 'safe_filter': safefilter}
         requesturl = '{}/wallpapers'.format((self.baseurl))
-        response = requests.get(requesturl,params=query,headers={'Connection':'close'})
+        response = requests.get(requesturl, params=query, headers={'Connection': 'close'})
         if response.status_code == 200:
             # Build wallpaper object
             wallpapers = []
@@ -158,7 +158,7 @@ class DesktopprAPI:
         Returns a list of User objects otherwise.'''
         requesturl = '{}users/{}/followers'.format(self.baseurl,username)
         query = {'page':page}
-        r = requests.get(requesturl, params=query, headers={'Connection':'close'})
+        r = requests.get(requesturl, params=query, headers={'Connection': 'close'})
         if r.status_code==200:
             users = []
             userlist = r.json()['response']
@@ -190,8 +190,8 @@ class DesktopprAPI:
         '''Fetches a random wallpaper a user has in their collection.
         Returns a Wallpaper object if successful.
         Return None if it can't retrieve a wallpaper.'''
-        requesturl = '{}users/{}/wallpapers/random'.format(self.baseurl,username)
-        r = requests.get(requesturl, headers={'Connection':'close'})
+        requesturl = '{}users/{}/wallpapers/random'.format(self.baseurl, username)
+        r = requests.get(requesturl, headers={'Connection': 'close'})
         if r.status_code == 500 or r.status_code == 404:
             #error occurred
             logging.info('Status code:{}', r.status_code)
@@ -397,9 +397,9 @@ class DesktopprAPI:
         Returns True if the wallpaper exists in the user's dropbox(since they linked it -
         if they unlink it, the server won't consider those synced anymore, even though they do on the website and the dropbox folder.)
         Returns False otherwise.'''
-        query={'wallpaper_id': wallpaper_id}
-        r = requests.get('{}users/{}/wallpapers'.format(self.baseurl,username),params = query,headers={'Connection':'close'})
-        if r.status_code!=200:
+        query = {'wallpaper_id': wallpaper_id}
+        r = requests.get('{}users/{}/wallpapers'.format(self.baseurl, username), params=query, headers={'Connection': 'close'})
+        if r.status_code != 200:
             #A logging message will go here.
             logging.info('Error checking for synced wallpaper: {}'.format(r.status_code))
             return None
@@ -436,13 +436,42 @@ class DesktopprAPI:
         else:
             return False
 
+
 class Page:
     '''A page object represents a 'page' of information returned by the API when it involves paginated information.
     It contains wallpaper objects or user objects.'''
 
-    def __init__(self, info=None):
-        for key in info:
-            print(key)
+    def __init__(self, infotype, info):
+        self.wallpapers = None
+        self.users = None
+
+        if infotype != 'users' or infotype != 'wallpapers':
+            logging.error('ERROR: Page object should have been passed either users or wallpapers, GOT: {}'.format(infotype))
+        if infotype == 'users':
+            userlist = []
+            for user in info['response']:
+                userlist.append(User(user))
+            self.users = userlist
+        if infotype == 'wallpapers':
+            paperlist = []
+            for paper in info['response']:
+                paperlist.append(Wallpaper(paper))
+            self.wallpapers = paperlist
+
+        self.current_page = info['pagination']['current']
+        self.previous_page = info['pagination']['previous']
+        self.next_page = info['pagination']['next']
+        self.per_page = info['pagination']['per_page']
+        self.pages_count = info['pagination']['pages']
+
+    def __str__(self):
+        string = 'Page Object: '
+        props = []
+        for attr in dir(self):
+            if not callable(attr) and not attr.startswith('__'):
+                props.append('{}={}'.format(attr, str(getattr(self, attr))))
+        return '{}{}'.format(string, str(props))
+
 
 class Wallpaper:
 
@@ -513,7 +542,7 @@ class User:
         for attr in dir(self):
             if not callable(attr) and not attr.startswith('__'):
                 props.append('{}={}'.format(attr, str(getattr(self, attr))))
-        return string + str(props)
+        return '{}{}'.format(string, str(props))
 
 class Image:
     '''Represents an image object (a part of a wallpaper object). It will either contain only a url or a url, width and height, and another Image object..
@@ -544,4 +573,4 @@ class Image:
         for attr in dir(self):
             if not callable(attr) and not attr.startswith('__'):
                 props.append('{}={}'.format(attr, str(getattr(self, attr))))
-        return string + str(props)
+        return '{}{}'.format(string, str(props))

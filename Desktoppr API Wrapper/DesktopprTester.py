@@ -117,7 +117,7 @@ class Test(unittest.TestCase):
         api = DesktopprApi.DesktopprAPI()
         urls = api.get_wallpaper_urls()
         for url in urls:
-            r = requests.head(url)
+            r = requests.head(url, headers={'Connection': 'close'})
             self.assertTrue(r.status_code == 200)
 
     def testFlagging(self):
