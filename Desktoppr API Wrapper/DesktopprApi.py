@@ -148,7 +148,7 @@ class DesktopprAPI:
         urls = []
         if wallpapers:
             for wallpaper in wallpapers:
-                urls.append(wallpaper.image.url)
+                urls.append(wallpaper.url)
         return urls
 
     def get_user_followers(self, username, page=1):
@@ -461,11 +461,8 @@ class Wallpaper:
         if info:
             #We are going to parse a new wallpaper json
             for attribute in info:
-                if attribute == 'preview':
-                    print('preview attribute: {}', info[attribute])
                 if isinstance(info[attribute], dict):
                     #it's an image object.
-                    logging.info('Attaching Image object to wallpaper instance.')
                     setattr(self, attribute, Image(info[attribute]))
                     continue
                 setattr(self, attribute, info[attribute])
@@ -475,8 +472,8 @@ class Wallpaper:
         props = []
         for attr in dir(self):
             if not callable(attr) and not attr.startswith('__'):
-                props.append(attr + '=' + str(getattr(self, attr)))
-        return '{}{}'.format(string,str(props))
+                props.append('{}={}'.format(attr, str(getattr(self, attr))))
+        return '{}{}'.format(string, str(props))
 
 class User:
     '''Defines a user on the site.'''
@@ -507,7 +504,7 @@ class User:
         props = []
         for attr in dir(self):
             if not callable(attr) and not attr.startswith('__'):
-                props.append(attr + '=' + str(getattr(self, attr)))
+                props.append('{}={}'.format(attr, str(getattr(self, attr))))
         return string + str(props)
 
 class Image:
@@ -520,14 +517,12 @@ class Image:
         self.url = None
         self.width = None
         self.height = None
-        logging.info('Creating new image object.')
 
         if info:
             #Parsing image package - it might be the top level one (full) or lower (preview/thumbnail)
             for attribute in info:
-                if isinstance(info[attribute],dict):
-                    #it's an image object.
-                    setattr(self,attribute,Image(info[attribute]))
+                if isinstance(info[attribute], dict):
+                    setattr(self, attribute, Image(info[attribute]))
                     continue
                 setattr(self, attribute, info[attribute])
 
@@ -540,5 +535,5 @@ class Image:
         props = []
         for attr in dir(self):
             if not callable(attr) and not attr.startswith('__'):
-                props.append(attr + '=' + str(getattr(self, attr)))
+                props.append('{}={}'.format(attr, str(getattr(self, attr))))
         return string + str(props)
