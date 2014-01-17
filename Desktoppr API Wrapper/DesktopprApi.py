@@ -139,7 +139,7 @@ class DesktopprAPI:
         It uses the same interface as get_wallpapers.
         '''
         if safefilter != 'safe' and safefilter != 'include_pending' and safefilter != 'all':
-            logging.WARNING(
+            logging.warning(
                 'Unknown filter: {}. Valid options are safe, include_pending, all'.format(safefilter))
             return None
 
@@ -244,7 +244,7 @@ class DesktopprAPI:
     def _update_follow(self,username,action):
         '''Internal method to handle follow/unfollow requests'''
         if not self.apikey:
-            logging.WARNING(
+            logging.warning(
                 'ERROR: This is a user command. You must first authenticate as a user with authorize_user_pass() or authorize_API() method.')
             return None
         if action!='follow' and action!='unfollow':
@@ -289,7 +289,7 @@ class DesktopprAPI:
             logging.info('Internal error: Bad command for _update_like: {}'.format(action))
             return None
         if not self.apikey:
-            logging.WARNING('ERROR: This is a user command. You must first authenticate as a user with authorize_user_pass() or authorize_API() method.')
+            logging.warning('ERROR: This is a user command. You must first authenticate as a user with authorize_user_pass() or authorize_API() method.')
             return None
         requesturl = '{}user/wallpapers/{}/like'.format(self.baseurl, wallpaper_id)
         auth = {'auth_token': self.apikey}
@@ -371,7 +371,7 @@ class DesktopprAPI:
             logging.info('Internal error: Bad command for _update_sync: {}'.format(action))
             return None
         if not self.apikey:
-            logging.WARNING(
+            logging.warning(
                 'ERROR: This is a user command. You must first authenticate as a user with authorize_user_pass() or authorize_API() method.')
             return None
         requesturl='{}user/wallpapers/{}/selection'.format(self.baseurl,wallpaper_id)
@@ -424,7 +424,7 @@ class DesktopprAPI:
             logging.info('ERROR: Flag must be flag_safe, flag_not_safe, or flag_deletion')
             return None
         if not self.apikey:
-            logging.WARNING(
+            logging.warning(
                 'ERROR: This is a user command. You must first authenticate as a user with authorize_user_pass() or authorize_API() method.')
             return None
         requesturl = '{}wallpapers/{}/{}'.format(self.baseurl, wallpaper_id, flag)
