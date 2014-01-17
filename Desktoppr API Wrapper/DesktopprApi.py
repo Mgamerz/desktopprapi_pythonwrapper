@@ -11,6 +11,8 @@ import getpass
 
 from requests.auth import HTTPBasicAuth
 
+#Uncomment the following line to show debugging information
+logging.getLogger().setLevel(logging.INFO)
 
 class DesktopprAPI:
 	__version__ = '0.9'
@@ -67,16 +69,26 @@ class DesktopprAPI:
 		return User(response)
 
 	def get_user_collection(self, username):
-		'''Returns a dictionary describing a specific users' collection of 
-		wallpapers. The API documentation on this method is somewhat ambiguous.
+		'''Get a list of Wallpaper objects defining ones in a users collection.
+		
+		Returns None if an error occurs (no wallpapers, invalid user...)
+		Returns a list of Wallpapers if it succeeds.
 		'''
 		requesturl = '{}users/{}/wallpapers'.format(self.baseurl,username)
-		response = None
-		try:
-			response = requests.get(requesturl,headers={'Connection':'close'}).json()['response']
-		except Exception as e:
-			logging.info('Error retrieving wallpaper collection for user {}: {}'.format(username,e))
-		return response
+		r = requests.get(requesturl,headers={'Connection':'close'})
+		if r.status_code != 200:
+			logging.info('Abnormal response code when retreiving user collection: {}'.format(r.status_code))
+			return None
+		wallpapers = r.json()['response']
+		userpapers = []
+		if wallpapers:
+			print('not null')
+			for wallpaper in wallpapers:
+				userpapers.append(Wallpaper(wallpaper))
+			return userpapers
+		else:
+			logging.info('User has no wallpapers.')
+			return None
 
 	def get_wallpapers(self, page=1, safefilter='safe'):
 		'''Retrieves a list of wallpapers.

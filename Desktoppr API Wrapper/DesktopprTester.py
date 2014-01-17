@@ -8,7 +8,6 @@ import DesktopprApi
 
 class Test(unittest.TestCase):
 
-
     def testNoauth(self):
         api=DesktopprApi.DesktopprAPI()
         self.assertEqual(api.like_wallpaper(200),None)
@@ -16,16 +15,20 @@ class Test(unittest.TestCase):
         self.assertEqual(api.sync_wallpaper(202),None)
         self.assertEqual(api.unsync_wallpaper(203),None)
         
-        
+    def testUserCollection(self):
+        api = DesktopprApi.DesktopprAPI()
+        api.get_user_collection('mgamerz')    
+    
     def testLikes(self):
         api=DesktopprApi.DesktopprAPI()
         
     def testSyncStatus(self):
         api=DesktopprApi.DesktopprAPI()
-        self.assertTrue(api.check_if_synced('mgamerz',26167))
+        self.assertFalse(api.check_if_synced('mgamerz',26167))
         self.assertFalse(api.check_if_synced('mgamerz',124089))
         self.assertFalse(api.check_if_synced('mgamerz',1240890000))
-    #More tests to be written.
+        #More tests to be written.
+        
     def testLikeStatus(self):
         api=DesktopprApi.DesktopprAPI()
         self.assertTrue(api.check_if_liked('mgamerz',418047))
@@ -49,7 +52,15 @@ class Test(unittest.TestCase):
                 #We don't expect a user object.
                 if users:
                     self.fail('Userlist should be None')
-            
+    
+    def testAuthorization(self):
+        #It's not really safe to put in my real username and password here.
+        
+        #I'm trying to figure out how to automate testing real authorizations, which is difficult because I don't want to share my personal account information on github.
+        #So I'm just going to test fake API keys.
+        api=DesktopprApi.DesktopprAPI()
+        self.assertFalse(api.authorize_API('TESTING_API_AUTHORIZATION'))
+        self.assertFalse(api.authorize_user_pass('API_ASSERT_FAIL','1234567890'))
     
     def testRandomUserwallpaper(self):
         api=DesktopprApi.DesktopprAPI()
