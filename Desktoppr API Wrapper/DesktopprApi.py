@@ -89,6 +89,7 @@ class DesktopprAPI:
         if r.status_code != 200:
             logging.info('Abnormal response code when retreiving user collection: {}'.format(r.status_code))
             return None
+        page = Page(r.json())
         wallpapers = r.json()['response']
         userpapers = []
         if wallpapers:
@@ -396,7 +397,7 @@ class DesktopprAPI:
         Returns True if the wallpaper exists in the user's dropbox(since they linked it -
         if they unlink it, the server won't consider those synced anymore, even though they do on the website and the dropbox folder.)
         Returns False otherwise.'''
-        query={'wallpaper_id':wallpaper_id}
+        query={'wallpaper_id': wallpaper_id}
         r = requests.get('{}users/{}/wallpapers'.format(self.baseurl,username),params = query,headers={'Connection':'close'})
         if r.status_code!=200:
             #A logging message will go here.
@@ -435,6 +436,13 @@ class DesktopprAPI:
         else:
             return False
 
+class Page:
+    '''A page object represents a 'page' of information returned by the API when it involves paginated information.
+    It contains wallpaper objects or user objects.'''
+
+    def __init__(self, info=None):
+        for key in info:
+            print(key)
 
 class Wallpaper:
 
@@ -477,7 +485,7 @@ class Wallpaper:
 
 class User:
     '''Defines a user on the site.'''
-    def __init__(self,info=None):
+    def __init__(self, info=None):
         '''Predefined user attributes. These are elements in the returned
         json response when querying for a user. If you pass an info dictionary
         (only if its a user from the site), it will automatically fill these values.'''
