@@ -89,7 +89,8 @@ class Test(unittest.TestCase):
             user = wp.uploader
             if not user:
                 #Null checking
-                print(wp)
+
+                continue
             users = api.get_followed_users(user)
             if users:
                 for user in users:
@@ -157,11 +158,6 @@ class Test(unittest.TestCase):
                     api.unlike_wallpaper(paper.id)
                 page = api.get_userlikes(api.authed_user)
 
-        logging.critical('PRE: CHECK USER LIKES NOW!')
-        time.sleep(30)
-        logging.info('Waiting for server to flush unlike requests.')
-        time.sleep(10)
-
         #Second, we will randomly like lots of wallpapers.
         logging.info('Liking wallpapers to create pages on the server.')
 
@@ -174,10 +170,6 @@ class Test(unittest.TestCase):
             liked += 1
 
         likes_page = api.get_userlikes(api.authed_user)
-
-        logging.critical('POST: CHECK USER LIKES NOW!')
-        time.sleep(30)
-        print(likes_page)
 
         test_numlikes = 0
         if likes_page:
@@ -196,7 +188,6 @@ class Test(unittest.TestCase):
         api.authorize_API(testing_apikey)
         page = api.get_user_collection(api.authed_user)
         while page:
-            print(page)
             for paper in page.wallpapers:
                 api.unsync_wallpaper(paper.id)
             page = api.get_user_collection(api.authed_user) #Results will slowly crawl to page 1 as we delete them
@@ -204,7 +195,6 @@ class Test(unittest.TestCase):
         page = api.get_userlikes(api.authed_user)
         if page:
             while page.items_on_page > 0:
-                print(page)
                 for paper in page.wallpapers:
                     api.unlike_wallpaper(paper.id)
                 page = api.get_userlikes(api.authed_user)
