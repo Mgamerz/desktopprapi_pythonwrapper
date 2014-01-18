@@ -164,7 +164,7 @@ class DesktopprAPI:
             return None
 
     def get_wallpaper_urls(self, page=1, safefilter='safe'):
-        """This is a subset of get_wallpapers(), which returns a page of wallpaper URLs. The API does not document \
+        """This is a subset of :meth:`get_wallpapers`, which returns a page of wallpaper URLs. The API does not document \
         sorting options.
         It uses the same interface as get_wallpapers.
 
