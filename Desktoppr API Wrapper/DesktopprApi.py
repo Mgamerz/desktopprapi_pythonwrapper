@@ -514,9 +514,10 @@ class Wallpaper:
             for attribute in info:
                 if isinstance(info[attribute], dict):
                     #it's an image object.
+                    print('Setting attribute for IMAGE')
                     setattr(self, attribute, Image(info[attribute]))
                     continue
-                print('Creating wallpaper attribute: {} - which is a {}'.format(attribute, type(info[attribute])))
+                #print('Creating wallpaper attribute: {} - which is a {}'.format(attribute, type(info[attribute])))
                 setattr(self, attribute, info[attribute])
 
     def __str__(self):
