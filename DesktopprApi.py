@@ -13,6 +13,7 @@ from requests.auth import HTTPBasicAuth
 #Uncomment the following line to show debugging information
 logging.getLogger().setLevel(logging.INFO)
 
+
 class DesktopprAPI:
     """
     This class allows you to create an object that allows you to query the desktoppr site using their public api.
@@ -321,7 +322,7 @@ class DesktopprAPI:
         """
         return self._update_follow(username, 'unfollow')
 
-    def _update_follow(self,username,action):
+    def _update_follow(self, username, action):
         """Internal method to handle follow/unfollow requests"""
         if not self.apikey:
             logging.warning(
@@ -333,7 +334,7 @@ class DesktopprAPI:
         r = None
         if action == 'follow':
             r = requests.post('{}users/{}/follow'.format(self.baseurl, username),
-                                params={'auth_token': self.apikey}, headers={'Connection': 'close'})
+                              params={'auth_token': self.apikey}, headers={'Connection': 'close'})
 
             # if r.status_code!=200:
             #	print('Abnormal response following user',username,':',r.status_code)
@@ -347,7 +348,7 @@ class DesktopprAPI:
         else:
             return False
 
-    def like_wallpaper(self,wallpaper_id):
+    def like_wallpaper(self, wallpaper_id):
         """
         .. warning::
             This is a privileged method. You must authorize with :func:`authorize_user_pass` or :func:`authorize_API`
@@ -389,7 +390,8 @@ class DesktopprAPI:
             logging.info('Internal error: Bad command for _update_like: {}'.format(action))
             return None
         if not self.apikey:
-            logging.warning('ERROR: This is a user command. You must first authenticate as a user with authorize_user_pass() or authorize_API() method.')
+            logging.warning(
+                'ERROR: This is a user command. You must first authenticate as a user with authorize_user_pass() or authorize_API() method.')
             return None
         requesturl = '{}user/wallpapers/{}/like'.format(self.baseurl, wallpaper_id)
         auth = {'auth_token': self.apikey}
@@ -419,7 +421,8 @@ class DesktopprAPI:
 
         """
         query = {'wallpaper_id': wallpaper_id}
-        r = requests.get('{}users/{}/likes'.format(self.baseurl, username), params=query, headers={'Connection': 'close'})
+        r = requests.get('{}users/{}/likes'.format(self.baseurl, username), params=query,
+                         headers={'Connection': 'close'})
         if r.status_code != 200:
             logging.info('Error retrieving liked status:{}', r.status_code)
             return None
@@ -442,7 +445,8 @@ class DesktopprAPI:
         """
 
         query = {'page': page}
-        r = requests.get('{}users/{}/likes'.format(self.baseurl, username), params=query, headers={'Connection': 'close'})
+        r = requests.get('{}users/{}/likes'.format(self.baseurl, username), params=query,
+                         headers={'Connection': 'close'})
         if r.status_code != 200:
             logging.info('Error retrieving liked status:{}', r.status_code)
             return None
@@ -491,7 +495,8 @@ class DesktopprAPI:
             return None
         if not self.apikey:
             logging.warning(
-                'ERROR: This is a user command. You must first authenticate as a user with authorize_user_pass() or authorize_API() method.')
+                'ERROR: This is a user command. You must first authenticate as a user with authorize_user_pass() \
+                 or authorize_API() method.')
             return None
         requesturl = '{}user/wallpapers/{}/selection'.format(self.baseurl, wallpaper_id)
         auth = {'auth_token': self.apikey}
@@ -524,7 +529,8 @@ class DesktopprAPI:
 
         """
         query = {'wallpaper_id': wallpaper_id}
-        r = requests.get('{}users/{}/wallpapers'.format(self.baseurl, username), params=query, headers={'Connection': 'close'})
+        r = requests.get('{}users/{}/wallpapers'.format(self.baseurl, username), params=query,
+                         headers={'Connection': 'close'})
         if r.status_code != 200:
             #A logging message will go here.
             logging.info('Error checking for synced wallpaper: {}'.format(r.status_code))
@@ -604,7 +610,6 @@ class Page:
         """How many pieces of information are on this page. This corresponds to the size of the :data:`wallpapers` \
          or :data:`users` list size. """
 
-
         if infotype != 'users' and infotype != 'wallpapers':
             logging.error('ERROR: Page object should have been passed either users or wallpapers indicator, \
                 got: {}'.format(infotype))
@@ -629,9 +634,9 @@ class Page:
                 props.append('{}={}'.format(attr, str(getattr(self, attr))))
         return '{}{}'.format(string, str(props))
 
-class Wallpaper:
 
-    """Items are put into this dynamically, and it has no methods."""
+class Wallpaper:
+    """Defines a Wallpaper on the Desktoppr server. Contains many attributes about the image."""
 
     def __init__(self, info=None):
         """Predefined wallpaper attributes. These are elements in the returned \
@@ -699,22 +704,45 @@ class Wallpaper:
                 props.append('{}={}'.format(attr, str(getattr(self, attr))))
         return '{}{}'.format(string, str(props))
 
+
 class User:
-    '''Defines a user on the site.'''
+    """Defines a user on the site."""
+
     def __init__(self, info=None):
-        '''Predefined user attributes. These are elements in the returned
-        json response when querying for a user. If you pass an info dictionary
-        (only if its a user from the site), it will automatically fill these values.'''
+        """
+        Called when a new user is being created
+        :param info: Json dict representing a user
+        :type info: dict
+
+        """
 
         self.uploaded_count = None
+        """How many images the user has uploaded."""
+
         self.followers_count = None
+        """The number of people following this user."""
+
         self.username = None
+        """This user's username."""
+
         self.lifetime_member = None
+        """If the user is a lifetime member or not. Unsure what this means, perhaps they helped build the site or paid \
+            money."""
+
         self.avatar_url = None
+        """The URL to their avatar image, hosted by Gravatar."""
+
         self.wallpapers_count = None
+        """The number of wallpapers this user has in their collection."""
+
         self.created_at = None
+        """The date this user signed up."""
+
         self.following_count = None
+        """The number of users this user follows."""
+
         self.name = None
+        """The user's real name. This will be None if they didn't set one."""
 
         #If an information package was included, create this user.
         if info:
@@ -729,6 +757,7 @@ class User:
             if not callable(attr) and not attr.startswith('__'):
                 props.append('{}={}'.format(attr, str(getattr(self, attr))))
         return '{}{}'.format(string, str(props))
+
 
 class Image(object):
     """
