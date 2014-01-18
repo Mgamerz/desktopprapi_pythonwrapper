@@ -160,7 +160,7 @@ class DesktopprAPI:
         '''Fetches a list of users who follow this user.
         Returns None if the user has no followers, cannot be found, or an error occurs.
         Returns a list of User objects otherwise.'''
-        requesturl = '{}users/{}/followers'.format(self.baseurl,username)
+        requesturl = '{}users/{}/followers'.format(self.baseurl, username)
         query = {'page':page}
         r = requests.get(requesturl, params=query, headers={'Connection': 'close'})
         if r.status_code==200:
