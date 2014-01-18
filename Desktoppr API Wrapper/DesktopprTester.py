@@ -5,6 +5,7 @@ Created on Jan 15, 2014
 '''
 import unittest
 import time
+import sys
 import logging
 import random
 import DesktopprApi
@@ -145,7 +146,10 @@ class Test(unittest.TestCase):
             self.assertFalse(api.flag_wallpaper(random.randint(9000000, 90000000), 'flag_safe'))
 
     def testPagination(self):
-        #Disabled due to bug on the serverside
+        #Skip if python version 3.2: Build server concurrency issues.
+        if sys.version_info[1] < 3:
+            #Don't do it on python 3.2.x
+            return
         api = DesktopprApi.DesktopprAPI()
         api.authorize_API(testing_apikey)
         #first, delete existing likes.
