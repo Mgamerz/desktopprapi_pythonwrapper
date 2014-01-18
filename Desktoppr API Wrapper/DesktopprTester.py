@@ -148,15 +148,20 @@ class Test(unittest.TestCase):
         api.authorize_API(testing_apikey)
         #first, delete existing likes.
         page = api.get_userlikes(api.authed_user)
+        print(page)
         if page:
             while page.items_on_page > 0:
                 for paper in page.wallpapers:
                     logging.info('Unliking wallpaper before pagination testing.')
                     api.unlike_wallpaper(paper.id)
                 page = api.get_userlikes(api.authed_user)
+        print(page)
+        logging.info('Waiting for server to flush unlike requests.')
+        time.sleep(10)
 
         #First, we will randomly like lots of wallpapers.
         logging.info('Liking wallpapers to create pages on the server.')
+
         liked = 0
         loops = 45
         for _ in range(loops):
