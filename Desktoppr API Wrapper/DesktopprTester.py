@@ -155,7 +155,6 @@ class Test(unittest.TestCase):
                     api.unlike_wallpaper(paper.id)
                 page = api.get_userlikes(api.authed_user)
 
-
         #First, we will randomly like lots of wallpapers.
         logging.info('Liking wallpapers to create pages on the server.')
         liked = 0

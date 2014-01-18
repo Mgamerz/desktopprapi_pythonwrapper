@@ -29,7 +29,7 @@ class DesktopprAPI:
         '''
         query = {'auth_token': apikey}
         requesturl = '{}user/whoami'.format(self.baseurl)
-        r = requests.get(requesturl,params=query,headers={'Connection': 'close'})
+        r = requests.get(requesturl, params=query, headers={'Connection': 'close'})
         if r.status_code == 200:
             self.apikey = apikey
             self.authed_user = r.json()['response']['username']
@@ -179,7 +179,7 @@ class DesktopprAPI:
         Returns a list of User objects otherwise.'''
         requesturl = '{}users/{}/following'.format(self.baseurl, username)
         query={'page': page}
-        r = requests.get(requesturl,params=query,headers={'Connection': 'close'})
+        r = requests.get(requesturl, params=query, headers={'Connection': 'close'})
         if r.status_code == 200:
             users = []
             userlist = r.json()['response']
@@ -253,19 +253,19 @@ class DesktopprAPI:
             logging.warning(
                 'ERROR: This is a user command. You must first authenticate as a user with authorize_user_pass() or authorize_API() method.')
             return None
-        if action!='follow' and action!='unfollow':
+        if action != 'follow' and action != 'unfollow':
             logging.info('Internal error: Bad command for _update_follow: {}'.format(action))
             return None
         r = None
         if action == 'follow':
-            r = requests.post('{}users/{}/follow'.format(self.baseurl,username),
-                params={'auth_token': self.apikey})
+            r = requests.post('{}users/{}/follow'.format(self.baseurl, username),
+                                params={'auth_token': self.apikey}, headers={'Connection': 'close'})
 
             # if r.status_code!=200:
             #	print('Abnormal response following user',username,':',r.status_code)
         else:
-            r = requests.delete('{}users/{}/follow'.format(self.baseurl,username),
-                params = {'auth_token': self.apikey})
+            r = requests.delete('{}users/{}/follow'.format(self.baseurl, username),
+                                params={'auth_token': self.apikey}, headers={'Connection': 'close'})
             # if r.status_code!=200:
             #	print('Abnormal response unfollowing user',username,':',r.status_code)
         if r.status_code == 200:
@@ -301,9 +301,9 @@ class DesktopprAPI:
         auth = {'auth_token': self.apikey}
         r = None
         if action == 'like':
-            r = requests.post(requesturl, params=auth)
+            r = requests.post(requesturl, params=auth, headers={'Connection': 'close'})
         else:
-            r = requests.delete(requesturl, params=auth)
+            r = requests.delete(requesturl, params=auth, headers={'Connection': 'close'})
         if action == 'like' and (r.status_code == 200 or r.status_code == 422): #422 means its already synced
             return True
         else:
@@ -438,7 +438,7 @@ class DesktopprAPI:
                 'ERROR: This is a user command. You must first authenticate as a user with authorize_user_pass() or authorize_API() method.')
             return None
         requesturl = '{}wallpapers/{}/{}'.format(self.baseurl, wallpaper_id, flag)
-        r = requests.post(requesturl, params={'auth_token': self.apikey})
+        r = requests.post(requesturl, params={'auth_token': self.apikey}, headers={'Connection': 'close'})
         if r.status_code == 200:
             return True
         else:
