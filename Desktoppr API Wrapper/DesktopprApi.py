@@ -150,15 +150,14 @@ class DesktopprAPI:
         urls = []
         if wallpapers:
             for wallpaper in wallpapers:
-                print(wallpaper)
-                print(wallpaper.image)
                 urls.append(wallpaper.image.url)
         return urls
 
     def get_user_followers(self, username, page=1):
         '''Fetches a list of users who follow this user.
         Returns None if the user has no followers, cannot be found, or an error occurs.
-        Returns a list of User objects otherwise.'''
+        Returns a list of User objects otherwise.
+        '''
         requesturl = '{}users/{}/followers'.format(self.baseurl, username)
         query = {'page':page}
         r = requests.get(requesturl, params=query, headers={'Connection': 'close'})
@@ -197,10 +196,9 @@ class DesktopprAPI:
         r = requests.get(requesturl, headers={'Connection': 'close'})
         if r.status_code == 500 or r.status_code == 404:
             #error occurred
-            logging.info('Status code:{}', r.status_code)
+            logging.info('Status code for URL {}: {}'.format(r.url, r.status_code))
             return None
         wallpaper = Wallpaper(r.json()['response'])
-        print(wallpaper)
         return wallpaper
 
     def get_random_wallpaper(self, safefilter='safe'):
@@ -511,13 +509,8 @@ class Wallpaper:
             for attribute in info:
                 if isinstance(info[attribute], dict):
                     #it's an image object.
-                    print('Setting attribute for IMAGE: ')
                     setattr(self, attribute, Image(info[attribute]))
-                    print('SET ATTRIBUTE, CHECKING: {}'.format(getattr(self, attribute)))
                     continue
-                if attribute == 'image':
-                    print('AN ERROR HAS OCCURRED: IMAGE WAS NOT CASTED TO IMAGE OBJECT:', info[attribute])
-                print('Creating wallpaper attribute: {} - which is a {}'.format(attribute, type(info[attribute])))
                 setattr(self, attribute, info[attribute])
 
     def __str__(self):
@@ -571,7 +564,6 @@ class Image(object):
         self.height = None
 
         if info:
-            print('CREATING NEW IMAGE OBJECT.')
             #Parsing image package - it might be the top level one (full) or lower (preview/thumbnail)
             for attribute in info:
                 if isinstance(info[attribute], dict):

@@ -145,7 +145,7 @@ class Test(unittest.TestCase):
 
     def testPagination(self):
         #Disabled due to bug on the serverside
-        '''api = DesktopprApi.DesktopprAPI()
+        api = DesktopprApi.DesktopprAPI()
         api.authorize_API(testing_apikey)
         #first, delete existing likes.
         page = api.get_userlikes(api.authed_user)
@@ -187,7 +187,7 @@ class Test(unittest.TestCase):
         else:
             self.fail('Likes page should not be None')
         logging.info('Number liked vs known number: {}:{}'.format(liked, test_numlikes))
-        self.assertTrue(liked == test_numlikes)'''
+        self.assertTrue(liked == test_numlikes)
 
     @classmethod
     def tearDownClass(cls):
