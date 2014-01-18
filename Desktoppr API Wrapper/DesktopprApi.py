@@ -372,28 +372,28 @@ class DesktopprAPI:
         Returns None if the you haven't authorized against the server yet.
         Returns True if a wallpaper was set to unsync (or did not exist).
         Returns False if the HTTP response is not 200 or 404 (Not in user's DropBox)'''
-        return self.__update_sync(wallpaper_id,'unsync')
+        return self.__update_sync(wallpaper_id, 'unsync')
 
-    def __update_sync(self,wallpaper_id,action):
+    def __update_sync(self, wallpaper_id, action):
         '''Internal method to handle sync requests'''
-        if action!='sync' and action!='unsync':
+        if action != 'sync' and action != 'unsync':
             logging.info('Internal error: Bad command for _update_sync: {}'.format(action))
             return None
         if not self.apikey:
             logging.warning(
                 'ERROR: This is a user command. You must first authenticate as a user with authorize_user_pass() or authorize_API() method.')
             return None
-        requesturl='{}user/wallpapers/{}/selection'.format(self.baseurl,wallpaper_id)
-        auth={'auth_token':self.apikey}
+        requesturl = '{}user/wallpapers/{}/selection'.format(self.baseurl, wallpaper_id)
+        auth = {'auth_token': self.apikey}
         r = None
-        if action=='sync':
-            r = requests.post(requesturl,params=auth)
+        if action == 'sync':
+            r = requests.post(requesturl, params=auth, headers={'Connection': 'close'})
         else:
-            r = requests.delete(requesturl,params=auth)
-        if action=='sync' and (r.status_code==200 or r.status_code==422): #422 means its already synced
+            r = requests.delete(requesturl, params=auth, headers={'Connection': 'close'})
+        if action == 'sync' and (r.status_code == 200 or r.status_code == 422): #422 means its already synced
             return True
         else:
-            if r.status_code==200 or r.status_code==404: #unsync checks against your dropbox folder. If it 404's, the file is already unsynced.
+            if r.status_code == 200 or r.status_code == 404: #unsync checks against your dropbox folder. If it 404's, the file is already unsynced.
                 return True
         return False
 
