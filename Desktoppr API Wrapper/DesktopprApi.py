@@ -76,7 +76,10 @@ class DesktopprAPI:
         return User(response)
 
     def get_user_collection(self, username, page=1):
-        '''Get a list of Wallpaper objects defining ones in a users collection.
+        '''Gets a list of Wallpapers defining ones in a users collection.
+
+        This command returns a Page object, as the results of this command are paginated on the server.
+        Access the list of wallpapers via result.wallpapers.
 
         Returns None if an error occurs (no wallpapers, invalid user...)
         Returns a list of Wallpapers if it succeeds.
@@ -87,15 +90,16 @@ class DesktopprAPI:
         requesturl = '{}users/{}/wallpapers'.format(self.baseurl, username)
         r = requests.get(requesturl, params=query, headers={'Connection': 'close'})
         if r.status_code != 200:
-            logging.info('Abnormal response code when retreiving user collection: {}'.format(r.status_code))
+            logging.info('Abnormal response code when retrieving user collection: {}'.format(r.status_code))
             return None
-        page = Page(r.json())
+        page = Page('users', r.json())
         wallpapers = r.json()['response']
-        userpapers = []
+        #userpapers = []
         if wallpapers:
-            for wallpaper in wallpapers:
-                userpapers.append(Wallpaper(wallpaper))
-            return userpapers
+            return Page('wallpapers', r.json())
+            #for wallpaper in wallpapers:
+            #    userpapers.append(Wallpaper(wallpaper))
+            #return userpapers
         else:
             logging.info('User has no wallpapers.')
             return None
@@ -108,8 +112,8 @@ class DesktopprAPI:
         include_pending = Images not yet marked as safe or not safe for work (NSFW)
         all = All images, including NSFW images
 
-        Returns None if a bad safetyfilter is passed (if any) or there was an error getting wallpapers.
-        Returns a list of Wallpaper objects if successful.
+        Returns None if a bad safefilter is passed (if any) or there was an error getting wallpapers.
+        Returns a Page object containing wallpaper objects in the wallpapers attribute if successful.
         '''
         if safefilter != 'safe' and safefilter != 'include_pending' and safefilter != 'all':
             logging.info(
@@ -335,7 +339,7 @@ class DesktopprAPI:
         @param page: Optional, return different list of pages. Defaults to 1.
 
         Returns None if an error occurs (not a user, etc).
-        Returns a list of wallpapers a user likes. It is empty if the user does not like any wallpapers.
+        Returns a Page object if successful. Wallpapers the user likes can be accessed via the .wallpapers attribute.
         '''
 
         query = {'page': page}
@@ -343,11 +347,14 @@ class DesktopprAPI:
         if r.status_code != 200:
             logging.info('Error retrieving liked status:{}', r.status_code)
             return None
-        likes = r.json()['response']
+        return Page('wallpapers', r.json())
+        #likes = r.json()['response']
+        #ret
+        '''
         wallpapers = []
         for like in likes:
             wallpapers.append(Wallpaper(like))
-        return wallpapers
+        return wallpapers'''
 
     def sync_wallpaper(self,wallpaper_id):
         '''This is a privileged method. You must authorize before you can use it.
@@ -413,14 +420,15 @@ class DesktopprAPI:
             return None
 
     def flag_wallpaper(self, wallpaper_id, flag):
-        '''Flags a wallpaper.
-        flag must be flag_safe, flag_not_safe, and flag_deletion.
+        '''Flags a wallpaper for filtering on the site.
         This is a privileged method. You must first authenticate with the authorize() methods before
         you can use this method.
 
         Returns None if the you haven't authorized against the server yet or if the flag is invalid.
         Returns True if the Wallpaper was successfully flagged.
         Returns False if the Wallpaper was not successfully flagged.
+        @param wallpaper_id: integer id of the wallpaper.
+        @param flag: Flag to place on a wallpaper. Valid options are flag_safe, flag_not_safe, and flag_deletion
         '''
         if flag!='flag_safe' and flag!='flag_not_safe' and flag!='flag_deletion':
             logging.info('ERROR: Flag must be flag_safe, flag_not_safe, or flag_deletion')
@@ -445,8 +453,9 @@ class Page:
         self.wallpapers = None
         self.users = None
 
-        if infotype != 'users' or infotype != 'wallpapers':
+        if infotype != 'users' and infotype != 'wallpapers':
             logging.error('ERROR: Page object should have been passed either users or wallpapers, GOT: {}'.format(infotype))
+
         if infotype == 'users':
             userlist = []
             for user in info['response']:
@@ -463,6 +472,8 @@ class Page:
         self.next_page = info['pagination']['next']
         self.per_page = info['pagination']['per_page']
         self.pages_count = info['pagination']['pages']
+        self.items_on_page = info['count']
+
 
     def __str__(self):
         string = 'Page Object: '

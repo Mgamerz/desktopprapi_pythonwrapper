@@ -72,8 +72,8 @@ class Test(unittest.TestCase):
             wp = api.get_random_wallpaper()
             user = wp.uploader
             if not user:
-                #Null checking
-                print(wp)
+                logging.info('Uploaded image has no user account associated with it. It likely was deleted. Skipping this round.')
+                continue
             userinfo = api.get_user_info(user)
             self.assertTrue(isinstance(userinfo, DesktopprApi.User))
 
@@ -143,22 +143,54 @@ class Test(unittest.TestCase):
             #these wallpapers don't exist. Should return false.
             self.assertFalse(api.flag_wallpaper(random.randint(9000000, 90000000), 'flag_safe'))
 
+    def testPagination(self):
+        api = DesktopprApi.DesktopprAPI()
+        api.authorize_API(testing_apikey)
+        #First, we will randomly like lots of wallpapers.
+        logging.info('Liking wallpapers to create pages on the server.')
+        liked = 0
+        loops = 45
+        for _ in range(loops):
+            logging.info('Liking wallpaper {} in loop of {}'.format(liked, loops))
+            wp = api.get_random_wallpaper()
+            self.assertTrue(api.like_wallpaper(wp.id))
+            liked += 1
 
+        likes_page = api.get_userlikes(api.authed_user)
+        print(likes_page)
+
+        test_numlikes = 0
+        if likes_page:
+            while likes_page.items_on_page > 0:
+                print(likes_page)
+                test_numlikes += likes_page.items_on_page #I think this is how many items are on this page...
+                likes_page = api.get_userlikes(api.authed_user, likes_page.current_page+1)
+        else:
+            self.fail('Likes page should not be None')
+        logging.info('Number liked vs known number: {}:{}'.format(liked, test_numlikes))
+        self.assertTrue(liked == test_numlikes)
 
     @classmethod
     def tearDownClass(cls):
         logging.warning('Finishing tests: Removing all wallpapers in dropbox.')
         api = DesktopprApi.DesktopprAPI()
         api.authorize_API(testing_apikey)
-        wallpapers = api.get_user_collection(api.authed_user)
-        if wallpapers:
-            for paper in wallpapers:
+        page = api.get_user_collection(api.authed_user)
+        while page:
+            print(page)
+            for paper in page.wallpapers:
                 api.unsync_wallpaper(paper.id)
+            page = api.get_user_collection(api.authed_user) #Results will slowly crawl to page 1 as we delete them
+
+        page = api.get_userlikes(api.authed_user)
+        if page:
+            while page.items_on_page > 0:
+                print(page)
+                for paper in page.wallpapers:
+                    api.unlike_wallpaper(paper.id)
+                page = api.get_userlikes(api.authed_user)
 
         #If wallpapers was false, there are no wallpapers in the collection.
-
-
-
 
 if __name__ == "__main__":
     unittest.main()
