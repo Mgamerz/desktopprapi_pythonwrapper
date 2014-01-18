@@ -560,7 +560,8 @@ class DesktopprAPI:
             return None
         if not self.apikey:
             logging.warning(
-                'ERROR: This is a user command. You must first authenticate as a user with authorize_user_pass() or authorize_API() method.')
+                'ERROR: This is a user command. You must first authenticate as a user with authorize_user_pass() \
+                or authorize_API() method.')
             return None
         requesturl = '{}wallpapers/{}/{}'.format(self.baseurl, wallpaper_id, flag)
         r = requests.post(requesturl, params={'auth_token': self.apikey}, headers={'Connection': 'close'})
@@ -571,15 +572,42 @@ class DesktopprAPI:
 
 
 class Page:
-    '''A page object represents a 'page' of information returned by the API when it involves paginated information.
-    It contains wallpaper objects or user objects.'''
+    """A page object represents a 'page' of information returned by the API when it involves paginated information.
+    It contains either a list of :class:`Wallpaper` objects or a list of :class:`User` objects."""
 
     def __init__(self, infotype, info):
         self.wallpapers = None
+        """List of :class:`Wallpaper` objects contained on this page. It is None if that is not what this page is \
+        supposed to return."""
+
         self.users = None
+        """List of :class:`User` objects contained on this page. It is None if that is not what this page is supposed \
+            to return."""
+
+        self.current_page = info['pagination']['current']
+        """Index of the current page this object represents."""
+
+        self.previous_page = info['pagination']['previous']
+        """ The previous page of information. It can be None if there is no previous page."""
+
+        self.next_page = info['pagination']['next']
+        """ The next page of information. It can be None if there is no next page."""
+
+        self.per_page = info['pagination']['per_page']
+        """How many results this page can store. It should be the same across different page numbers from the query \
+        that generated this page."""
+
+        self.pages_count = info['pagination']['pages']
+        """How many total pages of information are in the query that generated this page."""
+
+        self.items_on_page = info['count']
+        """How many pieces of information are on this page. This corresponds to the size of the :data:`wallpapers` \
+         or :data:`users` list size. """
+
 
         if infotype != 'users' and infotype != 'wallpapers':
-            logging.error('ERROR: Page object should have been passed either users or wallpapers, GOT: {}'.format(infotype))
+            logging.error('ERROR: Page object should have been passed either users or wallpapers indicator, \
+                got: {}'.format(infotype))
 
         if infotype == 'users':
             userlist = []
@@ -592,13 +620,6 @@ class Page:
                 paperlist.append(Wallpaper(paper))
             self.wallpapers = paperlist
 
-        self.current_page = info['pagination']['current']
-        self.previous_page = info['pagination']['previous']
-        self.next_page = info['pagination']['next']
-        self.per_page = info['pagination']['per_page']
-        self.pages_count = info['pagination']['pages']
-        self.items_on_page = info['count']
-
 
     def __str__(self):
         string = 'Page Object: '
@@ -608,28 +629,58 @@ class Page:
                 props.append('{}={}'.format(attr, str(getattr(self, attr))))
         return '{}{}'.format(string, str(props))
 
-
 class Wallpaper:
 
-    '''Items are put into this dynamically, and it has no methods.'''
+    """Items are put into this dynamically, and it has no methods."""
 
     def __init__(self, info=None):
-        '''Predefined wallpaper attributes. These are elements in the returned
-        json response when querying for a wallpaper.'''
+        """Predefined wallpaper attributes. These are elements in the returned \
+        json response when querying for a wallpaper."""
 
         #Set wallpaper defaults
         self.height = None
+        """ Height of the full resolution image contained in the :attr:`image` attribute of this object."""
+
         self.created_at = None
+        """Datestamp the file was uploaded."""
+
         self.image = None
+        """ Image object that contains the image-file specific details, like resolution and URLs to the image."""
+
         self.url = None
+        """URL to the Desktoppr.co page, where you can like and sync the wallpaper."""
+
         self.uploader = None
+        """Username of uploader.
+
+        .. warning::
+            Do not assume this always exists. Users who have uploaded images but have deleted their account \
+            will still have wallpapers on the site. This will cause some Wallpaper objects to have this field set \
+            to None.
+
+        """
+
         self.user_count = None
+        """I am not sure what this field means."""
+
         self.likes_count = None
+        """Number of likes this wallpaper currently has."""
+
         self.review_state = None
+        """Current flag state of this wallpaper. Values in this field should be *safe*, *pending*, or *not_safe*. """
+
         self.bytes = None
+        """Filesize of the full resolution image contained in the :data:`image` field."""
+
         self.palette = None
+        """List of colors in the palette of the image... not exactly sure what this means."""
+
         self.id = None
+        """ID for this wallpaper. This is the same as the one when normally browsing the site, located at the end of \
+            the URL typically."""
+
         self.width = None
+        """Width of the full resolution image contained in the :attr:`image` attribute of this object."""
 
         if info:
             #We are going to parse a new wallpaper json
