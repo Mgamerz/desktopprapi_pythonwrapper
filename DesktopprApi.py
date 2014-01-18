@@ -680,15 +680,42 @@ class User:
         return '{}{}'.format(string, str(props))
 
 class Image(object):
-    '''Represents an image object (a part of a wallpaper object). It will either contain only a url or a url, width and height, and another Image object..
-    Width and Height attributes signify that this is a preview or a thumbnail image.'''
+    """
+    Represents an image object (a part of a wallpaper object). All values are initialized to none, but are \
+    set if an image dict is passed.
+
+    An image object can contain another image object. There are only two different setups of an image object:
+
+    * Contains thumb, preview, and url = **Full Resolution Image**
+    * Contains width, height, and url = **Thumbnail or Preview Image**
+
+    """
 
     def __init__(self, info=None):
+        """
+
+        :param info: Server's json representation of an image object. It is parsed and stored in this image object \
+            so the user doesn't have to do try/catch with dictionaries.
+        :type info: dict
+        """
+
         self.thumb = None
+        """Thumbnail version of this image object. It is None if it is a thumbnail or a preview image."""
+
         self.preview = None
+        """Preview version of this image object. It is higher resolution than a thumbnail. It is None if it is a \
+            thumbnail or a preview."""
+
         self.url = None
+        """Direct URL to the image."""
+
         self.width = None
+        """Width of the image. This is only supplied in the thumbnail and preview objects. The resolution of the full \
+            resolution can be found in the containing :class:`Wallpaper` object. """
+
         self.height = None
+        """Height of the image. This is only supplied in the thumbnail and preview objects. The resolution of the full \
+            resolution can be found in the containing :class:`Wallpaper` object. """
 
         if info:
             #Parsing image package - it might be the top level one (full) or lower (preview/thumbnail)
