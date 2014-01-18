@@ -129,10 +129,7 @@ class DesktopprAPI:
             wallpapers = []
             json = response.json()['response']
             for paperinfo in json:
-                wallpaper = Wallpaper()
-                for key in paperinfo:
-                    setattr(wallpaper, key, paperinfo[key])
-                wallpapers.append(wallpaper)
+                wallpapers.append(Wallpaper(paperinfo))
             return wallpapers
         else:
             logging.info('Error getting wallpapers:', response.status_code)
@@ -514,10 +511,13 @@ class Wallpaper:
             for attribute in info:
                 if isinstance(info[attribute], dict):
                     #it's an image object.
-                    print('Setting attribute for IMAGE')
+                    print('Setting attribute for IMAGE: ')
                     setattr(self, attribute, Image(info[attribute]))
+                    print('SET ATTRIBUTE, CHECKING: {}'.format(getattr(self, attribute)))
                     continue
-                #print('Creating wallpaper attribute: {} - which is a {}'.format(attribute, type(info[attribute])))
+                if attribute == 'image':
+                    print('AN ERROR HAS OCCURRED: IMAGE WAS NOT CASTED TO IMAGE OBJECT:', info[attribute])
+                print('Creating wallpaper attribute: {} - which is a {}'.format(attribute, type(info[attribute])))
                 setattr(self, attribute, info[attribute])
 
     def __str__(self):
@@ -550,7 +550,6 @@ class User:
             for attribute in info:
                 #There are no dictionaries in the response for a user.
                 setattr(self, attribute, info[attribute])
-
 
     def __str__(self):
         string = 'User object: '
