@@ -1,10 +1,13 @@
-Getting Started
+Prerequesites
 ***********************************
 
-*************
-Prerequesites
-*************
+Required Packages
+===================
+
 Getting started with the Desktoppr API wrapper is easy. All you need is Python3 and the requests library.
+
+.. note:: This wrapper was not written for Python 2.x. It does *not* work on Python 2.x.
+
 
 If you aren't sure if you have requests, you can check by starting the python interpreter you're going to use and importing the requests module. If you get the following error below, you don't have the requests module installed::
 
@@ -28,4 +31,4 @@ You may need to use your specific python's pip version if it defaults to a diffe
 
 API Authorization
 =================
-To interact with the site as a user you will need to to make an account on the Desktoppr.co website. This will allow you to like and sync wallpapers, flag wallpapers, as well as other user-based tasks. If you aren't going to interact as a user, you won't need to authorize.s
+To interact with the site as a user you will need to to make an account on the Desktoppr.co website. This will allow you to like and sync wallpapers, flag wallpapers, as well as other user-based tasks. If you aren't going to interact as a user, you won't need to authorize to the server.

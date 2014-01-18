@@ -1,5 +1,5 @@
 **************************
-Wrapper Code Documentation
+Module Documentation
 **************************
 
 .. automodule:: DesktopprApi
