@@ -159,18 +159,21 @@ class Test(unittest.TestCase):
         logging.info('Waiting for server to flush unlike requests.')
         time.sleep(10)
 
-        #First, we will randomly like lots of wallpapers.
+        #Second, we will randomly like lots of wallpapers.
         logging.info('Liking wallpapers to create pages on the server.')
 
         liked = 0
         loops = 45
         for _ in range(loops):
-            logging.info('Liking wallpaper {} in loop of {}'.format(liked, loops))
+            logging.info('Liking wallpaper {} in loop of {}'.format(liked+1, loops))
             wp = api.get_random_wallpaper()
             self.assertTrue(api.like_wallpaper(wp.id))
             liked += 1
 
         likes_page = api.get_userlikes(api.authed_user)
+
+        logging.CRITICAL('CHECK USER LIKES NOW!')
+        time.sleep(30)
         print(likes_page)
 
         test_numlikes = 0
