@@ -153,6 +153,8 @@ class DesktopprAPI:
         urls = []
         if wallpapers:
             for wallpaper in wallpapers:
+                print(wallpaper)
+                print(wallpaper.image)
                 urls.append(wallpaper.image.url)
         return urls
 
@@ -201,6 +203,7 @@ class DesktopprAPI:
             logging.info('Status code:{}', r.status_code)
             return None
         wallpaper = Wallpaper(r.json()['response'])
+        print(wallpaper)
         return wallpaper
 
     def get_random_wallpaper(self, safefilter='safe'):
@@ -513,6 +516,7 @@ class Wallpaper:
                     #it's an image object.
                     setattr(self, attribute, Image(info[attribute]))
                     continue
+                print('Creating wallpaper attribute: {} - which is a {}'.format(attribute, type(info[attribute])))
                 setattr(self, attribute, info[attribute])
 
     def __str__(self):
