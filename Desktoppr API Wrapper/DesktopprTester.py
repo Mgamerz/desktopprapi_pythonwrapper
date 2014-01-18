@@ -146,6 +146,16 @@ class Test(unittest.TestCase):
     def testPagination(self):
         api = DesktopprApi.DesktopprAPI()
         api.authorize_API(testing_apikey)
+        #first, delete existing likes.
+        page = api.get_userlikes(api.authed_user)
+        if page:
+            while page.items_on_page > 0:
+                for paper in page.wallpapers:
+                    logging.info('Unliking wallpaper before pagination testing.')
+                    api.unlike_wallpaper(paper.id)
+                page = api.get_userlikes(api.authed_user)
+
+
         #First, we will randomly like lots of wallpapers.
         logging.info('Liking wallpapers to create pages on the server.')
         liked = 0
@@ -162,7 +172,6 @@ class Test(unittest.TestCase):
         test_numlikes = 0
         if likes_page:
             while likes_page.items_on_page > 0:
-                print(likes_page)
                 test_numlikes += likes_page.items_on_page #I think this is how many items are on this page...
                 likes_page = api.get_userlikes(api.authed_user, likes_page.current_page+1)
         else:
@@ -172,7 +181,7 @@ class Test(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        logging.warning('Finishing tests: Removing all wallpapers in dropbox.')
+        logging.warning('Finishing tests: Removing all wallpapers in DropBox.')
         api = DesktopprApi.DesktopprAPI()
         api.authorize_API(testing_apikey)
         page = api.get_user_collection(api.authed_user)
