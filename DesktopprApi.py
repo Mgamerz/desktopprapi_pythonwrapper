@@ -19,12 +19,18 @@ class DesktopprAPI:
     """
     __version__ = '0.9'
     baseurl = 'https://api.desktoppr.co/1/'
-    apikey = None
-    authed_user = None
+    apikey = None #: Stored API key for the session. It is set when an authorize method succeeds.
+    authed_user = None #: Stored username for the authorized user. It is set when an authorize method succeeds.
 
     def authorize_API(self, apikey):
         """Authorizes using a users api key. This does not require the user's
         password or username.
+
+        :param apikey: The api key for your user account. Successfully authorizing will store this key in the field
+            self.apikey.
+        :type apikey: str
+        :returns: * **True** -- if the authorization worked with the given apikey.
+            * **False** -- if the authorization did not work with the given apikey.
         """
         query = {'auth_token': apikey}
         requesturl = '{}user/whoami'.format(self.baseurl)
@@ -39,9 +45,18 @@ class DesktopprAPI:
             return False
 
     def authorize_user_pass(self, username, password):
-        """Gets a privileged access key by authorizing to the site with a username/
-        password. Stores the users API key for further privileged access in this
-        session.
+        """Gets a users api key by authorizing to the site with a username/
+        password. Stores the users API key in the field self.apikey for further privileged access in this
+        object's session.
+
+        :param username: Username to login with.
+        :type username: str
+        :param password: User's password. You should take steps to secure the entry of this argument.
+        :type password: str
+
+        :returns: * **True** -- if the authorization worked with the given username/password. The API key of the user is now cached.
+            * **False** -- if the authorization did not work with the given username/password.
+
         """
         r = requests.get(
             'https://api.desktoppr.co/1/user/whoami',
@@ -58,13 +73,15 @@ class DesktopprAPI:
             return False
 
     def get_user_info(self, username):
-        '''Get information about a user.
+        """Get information about a user.
 
-        Returns None if the request did not return user information.
-        Returns a User object describing a specific user if successful.
+        :param username: User to query for information
+        :type username: str
 
-        @param username: User to query for information
-        '''
+        :returns: * **None** if the request did not return user information.
+            * :class:`User` object -- if the command succeeds. The user object's attributes can be parsed for desired information.
+
+        """
         requesturl = '{}users/{}'.format(self.baseurl, username)
         try:
             response = requests.get(requesturl, headers={'Connection': 'close'}).json()['response']
@@ -75,16 +92,17 @@ class DesktopprAPI:
         return User(response)
 
     def get_user_collection(self, username, page=1):
-        '''Gets a list of Wallpapers defining ones in a users collection.
+        """Gets a page of wallpapers defining ones in a users collection. The default page is 1.
 
-        This command returns a Page object, as the results of this command are paginated on the server.
-        Access the list of wallpapers via result.wallpapers.
+        :param username: User to query for information
+        :type username: str
+        :param page: *Optional*, the page number to return. The number of results per page is limited by the server.
+        :type page: int
 
-        Returns None if an error occurs (no wallpapers, invalid user...)
-        Returns a list of Wallpapers if it succeeds.
-
-        @param username: User to query for information
-        '''
+        :returns: * **None** -- if an error occurs (no wallpapers, invalid user...)
+            * :class:`Page` object -- if the command succeeds. The page object's wallpapers attribute is populated \
+        with the list of wallpapers the user has in their collection.
+        """
         query = {'page': page}
         requesturl = '{}users/{}/wallpapers'.format(self.baseurl, username)
         r = requests.get(requesturl, params=query, headers={'Connection': 'close'})
@@ -106,13 +124,23 @@ class DesktopprAPI:
     def get_wallpapers(self, page=1, safefilter='safe'):
         """Retrieves a list of wallpapers.
         The page parameter can query different pages of results.
+
         The safefilter can return different levels of images::
+
             safe = Safe for work
             include_pending = Images not yet marked as safe or not safe for work (NSFW)
             all = All images, including NSFW images
 
+        :param page: *Optional*, page of results to retrieve.
+        :type page: int
+        :param safefilter: Safety filter for returned images. Valid strings are **safe**, **include_pending**, and **all**.
+        :type safefilter: str
+
+
         :returns: * **None** if a bad safefilter is passed (if any) or there was an error getting wallpapers.
-            * :class:`Page` object -- if the command succeeds. The page object's wallpapers attribute is set to a  containing wallpaper objects in the wallpapers attribute if successful.
+            * :class:`Page` object -- if the command succeeds. The page object's wallpapers attribute is populated \
+        with the list of wallpapers the returned by the server.
+
         """
         if safefilter != 'safe' and safefilter != 'include_pending' and safefilter != 'all':
             logging.info(
@@ -135,16 +163,18 @@ class DesktopprAPI:
             return None
 
     def get_wallpaper_urls(self, page=1, safefilter='safe'):
-        """This is a subset of get_wallpapers(), which returns a page of wallpaper URLs. The API does not document sorting options.
+        """This is a subset of get_wallpapers(), which returns a page of wallpaper URLs. The API does not document \
+        sorting options.
         It uses the same interface as get_wallpapers.
 
-        :param page: Optional, page number to return. The server limits how many results are returned by query, so
+        :param page: *Optional*, page number to return. The server limits how many results are returned by query, so
             pages allow you to sift through results.
         :type page: int
         :param safefilter: Safety filter for returned images. Valid strings are **safe**, **include_pending**, and **all**.
         :type safefilter: str
 
-        :return: * :class:`Page` object -- if the command succeeds. The page object allows you to iterate over results.
+        :return: * :class:`Page` object -- if the command succeeds. The page object's wallpapers attribute is \
+        populated with the list of wallpapers.
              * **None** -- If an error occurs trying to get wallpapers.
         """
         if safefilter != 'safe' and safefilter != 'include_pending' and safefilter != 'all':
@@ -160,13 +190,18 @@ class DesktopprAPI:
         return urls
 
     def get_user_followers(self, username, page=1):
-        """Gets a list of :class:`User` objects representing users who follow this user.
+        """Gets a :class:`Page` contains a list of of :class:`User` objects representing users who follow this user.
+        The pages can be iterated over to find all followers.
 
         :param username: Username to query.
         :type username: str
+        :param page: Page of results to return
+        :type page: int
 
-        :returns: **None** -- if the user has no followers, cannot be found, or an error occurs.
-        :returns: list[:class:`User`] -- if the command succeeds.
+        :returns: * **None** -- if the user has no followers, cannot be found, or an error occurs.
+            * :class:`Page` object -- if the command succeeds. The page object's users attribute is populated \
+        with the list of users.
+
         """
         requesturl = '{}users/{}/followers'.format(self.baseurl, username)
         query = {'page': page}
@@ -187,13 +222,13 @@ class DesktopprAPI:
         :param username: Username to query.
         :type username: str
 
-        :returns: None -- if the user follows noone, the user cannot be found, or an error occurs.
-        :returns: :class:`Page` -- if the command succeeds. The page object's username attribute is populated
-        with the list of users.
+        :returns: * **None** -- if the user follows noone, the user cannot be found, or an error occurs.
+            * :class:`Page` object -- if the command succeeds. The page object's username attribute is populated \
+            with the list of users.
 
         """
         requesturl = '{}users/{}/following'.format(self.baseurl, username)
-        query={'page': page}
+        query = {'page': page}
         r = requests.get(requesturl, params=query, headers={'Connection': 'close'})
         if r.status_code == 200:
             users = []
@@ -210,8 +245,8 @@ class DesktopprAPI:
 
         :param username: Username to get random wallpaper from
         :type username: str
-        :returns: :class:`Wallpaper` object -- If successful.
-        :returns: None -- If a failure occurs.
+        :returns: * **None** -- if a failure occurred trying to get a wallpaper
+            * :class:`Wallpaper` object -- If successful.
 
         """
         requesturl = '{}users/{}/wallpapers/random'.format(self.baseurl, username)
@@ -226,13 +261,17 @@ class DesktopprAPI:
     def get_random_wallpaper(self, safefilter='safe'):
         """Retrieves a random wallpaper.
 
-        The safefilter parameter can return different levels of images::
-            safe = Safe for work [Default]
+        The safefilter can return different levels of images::
+
+            safe = Safe for work
             include_pending = Images not yet marked as safe or not safe for work (NSFW)
             all = All images, including NSFW images
 
-        :returns: **None** -- if a bad safefilter is passed (if any) or there was an error getting a wallpaper.
-        :returns: :class:`Wallpaper` object if successful.
+        :param safefilter: Safety filter for returned images. Valid strings are **safe**, **include_pending**, and **all**.
+        :type safefilter: str
+
+        :returns: * **None** -- if a bad safefilter is passed (if any) or there was an error getting a wallpaper.
+            * :class:`Wallpaper` object -- if successful.
         """
         if safefilter != 'safe' and safefilter != 'include_pending' and safefilter != 'all':
             logging.info(
@@ -254,12 +293,17 @@ class DesktopprAPI:
     def follow_user(self, username):
         """
         Attempts to follow a user.
+
         .. warning::
             This is a privileged method. You must authorize with :func:`authorize_user_pass` or :func:`authorize_API`
             before you can use it.
-        :returns: **None** -- if the you haven't authorized against the server yet.
-        :returns: **True** -- if the follow attempt succeeded.
-        :returns: **False** -- if the follow attempt failed.
+
+
+        :param username: Username to follow
+        :type username: str
+        :returns: * **None** -- if the you haven't authorized against the server yet.
+            * **True** -- if the follow attempt succeeded.
+            * **False** -- if the follow attempt failed.
 
         """
         return self._update_follow(username, 'follow')
@@ -268,9 +312,11 @@ class DesktopprAPI:
         """
         Attempts to unfollow a user.
 
-        :returns: **None** -- if the you haven't authorized against the server yet.
-        :returns: **True** -- if the unfollow attempt succeeded.
-        :returns: **False** -- if the unfollow attempt failed.
+        :param username: User to unfollow
+        :type username: str
+        :returns: * **None** -- if the you haven't authorized against the server yet.
+            * **True** -- if the unfollow attempt succeeded.
+            * **False** -- if the unfollow attempt failed.
 
         """
         return self._update_follow(username, 'unfollow')
@@ -307,24 +353,30 @@ class DesktopprAPI:
             This is a privileged method. You must authorize with :func:`authorize_user_pass` or :func:`authorize_API`
             before you can use it.
 
-        Unlikes a wallpaper.
+        Likes a wallpaper.
 
-        :returns: None -- if the you haven't authorized against the server yet.
-        :returns: True -- if the like succeeded.
-        :returns:  False -- if the like attempt failed."""
+        :param wallpaper_id: Wallpaper to like
+        :type wallpaper_id: int
+        :returns: * **None** -- if the you haven't authorized against the server yet.
+            * **True** -- if the like succeeded.
+            * **False** -- if the like attempt failed.
+
+        """
         return self.__update_like(wallpaper_id, 'like')
 
     def unlike_wallpaper(self, wallpaper_id):
         """
+        Unlikes a wallpaper.
+
         .. warning::
             This is a privileged method. You must authorize with :func:`authorize_user_pass` or :func:`authorize_API`
             before you can use it.
 
-        Unlikes a wallpaper.
-
-        :returns: None -- if the you haven't authorized against the server yet.
-        :returns: True -- if the unlike succeeded.
-        :returns:  False -- if the unlike attempt failed."""
+        :param wallpaper_id: Wallpaper to unlike
+        :type wallpaper_id: int
+        :returns: * **None** -- if the you haven't authorized against the server yet.
+            * **True** -- if the unlike succeeded.
+            * **  False** -- if the unlike attempt failed."""
         return self.__update_like(wallpaper_id, 'unlike')
 
     def __update_like(self, wallpaper_id, action):
@@ -349,19 +401,23 @@ class DesktopprAPI:
         if action == 'like' and (r.status_code == 200 or r.status_code == 422): #422 means its already synced
             return True
         else:
-            if r.status_code == 200 or r.status_code==404: #unsync checks against your dropbox folder. If it 404's, the file is already unsynced.
+            if r.status_code == 200 or r.status_code == 404: #unsync checks against your dropbox folder. If it 404's, the file is already unsynced.
                 return True
         return False
 
     def check_if_liked(self, username, wallpaper_id):
-        '''Checks if a user has liked a wallpaper.
+        """Checks if a user has liked a wallpaper.
 
-        :param: username: Username to check for liking a wallpaper
-        :param: wallpaper_id: Wallpaper to check if the user likes it
+        :param username: Username to check for liking a wallpaper
+        :type username: str
+        :param wallpaper_id: Wallpaper to check if the user likes it
+        :type wallpaper_id: int
 
-        Returns None if an error occurs (user doesn't exist, etc).
-        Returns True if the user has liked the wallpaper.
-        Returns False if the user hasn't liked the wallpaper.'''
+        :returns: * **None** -- if an error occurs (user doesn't exist, etc).
+            * **True**  -- if the user has liked the wallpaper.
+            * **False** -- if the user hasn't liked the wallpaper.
+
+        """
         query = {'wallpaper_id': wallpaper_id}
         r = requests.get('{}users/{}/likes'.format(self.baseurl, username), params=query, headers={'Connection': 'close'})
         if r.status_code != 200:
@@ -375,14 +431,15 @@ class DesktopprAPI:
             return False
 
     def get_userlikes(self, username, page=1):
-        '''Gets a list of wallpapers that a user likes.
+        """Gets a list of wallpapers that a user likes.
 
-        @param username: Username to get list of liked wallpapers for
-        @param page: Optional, return different list of pages. Defaults to 1.
-
-        Returns None if an error occurs (not a user, etc).
-        Returns a Page object if successful. Wallpapers the user likes can be accessed via the .wallpapers attribute.
-        '''
+        :param username: Username to get list of liked wallpapers for
+        :type username: str
+        :param page: *Optional*, return different list of pages. Defaults to 1.
+        :type page: int
+        :returns: * **None** -- if an error occurs (not a user, etc).
+            *  :class:`Page` object -- if successful. Wallpapers the user likes can be accessed via the .wallpapers attribute.
+        """
 
         query = {'page': page}
         r = requests.get('{}users/{}/likes'.format(self.baseurl, username), params=query, headers={'Connection': 'close'})
@@ -393,29 +450,42 @@ class DesktopprAPI:
 
     def sync_wallpaper(self, wallpaper_id):
         """
+        Informs the server that it should start a sync of a wallpaper to a user's DropBox.
+        This checks against the server for wallpapers.
+
         .. warning::
             This is a privileged method. You must authorize with :func:`authorize_user_pass` or :func:`authorize_API`
             before you can use it.
 
-        Informs the server that it should start a sync of a wallpaper to a user's DropBox.
-        This checks against the server for wallpapers.
-        Returns None if the you haven't authorized against the server yet.
-        Returns True if a wallpaper was set to sync (or was already synced).
-        Returns False if the HTTP response is not 200 or 422 (already synced)"""
+        :param wallpaper_id: The wallpaper id to sync to the authorized user's DropBox
+        :type wallpaper_id: int
+        :returns: * **None** -- if the you haven't authorized against the server yet.
+            * **True** -- if a wallpaper was set to sync (or was already synced).
+            * **False** -- if the HTTP response is not 200 or 422 (already synced)
+
+        """
         return self.__update_sync(wallpaper_id, 'sync')
 
     def unsync_wallpaper(self, wallpaper_id):
-        """This is a privileged method. You must authorize with :func:`authorize_userpass` or :func:`authorize_API`
-        before you can use it.
+        """
         Informs the server that it should remove a wallpaper from a user's DropBox.
-        This checks against the users DropBox for wallpapers.
-        Returns None if the you haven't authorized against the server yet.
-        Returns True if a wallpaper was set to unsync (or did not exist).
-        Returns False if the HTTP response is not 200 or 404 (Not in user's DropBox)"""
+        This checks against the user's DropBox for wallpapers, so if it doesn't exist there, it will still return **True**.
+
+        .. warning::
+            This is a privileged method. You must authorize with :func:`authorize_user_pass` or :func:`authorize_API`
+            before you can use it.
+
+        :param wallpaper_id: The wallpaper id to unsync from the authorized user's DropBox
+        :type wallpaper_id: int
+        :returns: * **None** if the you haven't authorized against the server yet.
+            * **True** -- if a wallpaper was set to unsync (or did not exist).
+            * **False** -- if the HTTP response is not 200 or 404 (Not in user's DropBox)
+
+        """
         return self.__update_sync(wallpaper_id, 'unsync')
 
     def __update_sync(self, wallpaper_id, action):
-        '''Internal method to handle sync requests'''
+        """Internal method to handle sync requests"""
         if action != 'sync' and action != 'unsync':
             logging.info('Internal error: Bad command for _update_sync: {}'.format(action))
             return None
@@ -438,12 +508,21 @@ class DesktopprAPI:
         return False
 
     def check_if_synced(self, username, wallpaper_id):
-        '''Checks if a user has a wallpaper currently synced to their personal DropBox.
-        The username is the user to check against.
-        The wallpaper_id is the wallpaper to check for.
-        Returns True if the wallpaper exists in the user's dropbox(since they linked it -
-        if they unlink it, the server won't consider those synced anymore, even though they do on the website and the dropbox folder.)
-        Returns False otherwise.'''
+        """
+        Checks if a user has a wallpaper currently synced to their personal DropBox.
+
+        :param username: Username to check for wallpaper sync status on
+        :type username: str
+        :param wallpaper_id: Wallpaper to check if it is synced
+        :type wallpaper_id: int
+
+
+        :returns: * **True** -- if the wallpaper exists in the user's DropBox since their last relink to DropBox. \
+        If a DropBox account is unlinked and relinked, all previous synced wallpapers are ignored, even if they \
+        still reside in their DropBox folder.
+            * **False** -- If the wallpaper is not synced, or if an error occurs.
+
+        """
         query = {'wallpaper_id': wallpaper_id}
         r = requests.get('{}users/{}/wallpapers'.format(self.baseurl, username), params=query, headers={'Connection': 'close'})
         if r.status_code != 200:
@@ -460,17 +539,23 @@ class DesktopprAPI:
             return None
 
     def flag_wallpaper(self, wallpaper_id, flag):
-        '''Flags a wallpaper for filtering on the site.
-        This is a privileged method. You must first authenticate with the authorize() methods before
-        you can use this method.
+        """Flags a wallpaper for filtering on the site.
 
-        Returns None if the you haven't authorized against the server yet or if the flag is invalid.
-        Returns True if the Wallpaper was successfully flagged.
-        Returns False if the Wallpaper was not successfully flagged.
-        @param wallpaper_id: integer id of the wallpaper.
-        @param flag: Flag to place on a wallpaper. Valid options are flag_safe, flag_not_safe, and flag_deletion
-        '''
-        if flag!='flag_safe' and flag!='flag_not_safe' and flag!='flag_deletion':
+        .. warning::
+            This is a privileged method. You must authorize with :func:`authorize_user_pass` or :func:`authorize_API`
+            before you can use it.
+
+        :param wallpaper_id: id of the wallpaper.
+        :type wallpaper_id: int
+        :param flag: Flag to place on a wallpaper. Valid options are **flag_safe**, **flag_not_safe**, and **flag_deletion**
+        :type flag: str
+
+        :returns: * **None** -- if the you haven't authorized against the server yet or if the flag is invalid.
+            * **True** -- if the Wallpaper was successfully flagged.
+            * **False** -- if the Wallpaper was not successfully flagged.
+
+        """
+        if flag != 'flag_safe' and flag != 'flag_not_safe' and flag != 'flag_deletion':
             logging.info('ERROR: Flag must be flag_safe, flag_not_safe, or flag_deletion')
             return None
         if not self.apikey:
