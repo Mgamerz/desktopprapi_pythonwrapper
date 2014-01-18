@@ -150,6 +150,9 @@ class Test(unittest.TestCase):
         if sys.version_info[1] < 3:
             #Don't do it on python 3.2.x
             return
+        else:
+            #make it wait so the build server doesn't overlap.
+            time.sleep(60)
         api = DesktopprApi.DesktopprAPI()
         api.authorize_API(testing_apikey)
         #first, delete existing likes.
