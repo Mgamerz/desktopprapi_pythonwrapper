@@ -560,11 +560,11 @@ class User:
                 props.append('{}={}'.format(attr, str(getattr(self, attr))))
         return '{}{}'.format(string, str(props))
 
-class Image:
+class Image(object):
     '''Represents an image object (a part of a wallpaper object). It will either contain only a url or a url, width and height, and another Image object..
     Width and Height attributes signify that this is a preview or a thumbnail image.'''
 
-    def __init__(self,info=None):
+    def __init__(self, info=None):
         self.thumb = None
         self.preview = None
         self.url = None
@@ -572,6 +572,7 @@ class Image:
         self.height = None
 
         if info:
+            print('CREATING NEW IMAGE OBJECT.')
             #Parsing image package - it might be the top level one (full) or lower (preview/thumbnail)
             for attribute in info:
                 if isinstance(info[attribute], dict):
