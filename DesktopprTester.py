@@ -98,7 +98,24 @@ class Test(unittest.TestCase):
         self.assertFalse(api.check_if_synced('mgamerz', 26167))
         self.assertFalse(api.check_if_synced('mgamerz', 124089))
         self.assertFalse(api.check_if_synced('mgamerz', 1240890000))
-        
+
+    def testStrings(self):
+        api = DesktopprApi.DesktopprAPI()
+        test_logger.info('Testing string representation of objects')
+
+        page = api.get_user_collection('keithpitt')
+        self.assertTrue(isinstance(str(page), str))
+        for item in page.wallpapers:
+            self.assertTrue(isinstance(str(item), str))
+            self.assertTrue(isinstance(str(item.image), str))
+            self.assertTrue(isinstance(str(item.image.preview), str))
+            self.assertTrue(isinstance(str(item.image.thumb), str))
+
+        page = api.get_followed_users('keithpitt')
+        self.assertTrue(isinstance(str(page), str))
+        for user in page.users:
+            self.assertTrue(isinstance(str(user), str))
+
     def testLikeStatus(self):
         api = DesktopprApi.DesktopprAPI()
         api.logger.setLevel(logging.INFO)
@@ -198,7 +215,7 @@ class Test(unittest.TestCase):
         api.logger.setLevel(logging.INFO)
         #Test if we can get a response if we aren't authorized yet.
         self.assertTrue(isinstance(api.flag_wallpaper(418618, 'flag_safe'), type(None)))
-
+        self.assertTrue(isinstance(api.flag_wallpaper(717, 'flag_failure'), type(None)))
         api.authorize_API(testing_apikey)
         known_safe_wallpapers = (418618, 418644)
         known_nsfw_wallpapers = (418997, 418304)
@@ -259,6 +276,22 @@ class Test(unittest.TestCase):
             self.fail('Likes page should not be None')
         test_logger.info('Number liked vs known number: {}:{}'.format(liked, test_numlikes))
         self.assertTrue(liked == test_numlikes)
+
+    def testAuthFollowUnFollow(self):
+        api = DesktopprApi.DesktopprAPI()
+        api.logger.setLevel(logging.INFO)
+        api.authorize_API(testing_apikey)
+        for i in range(6):
+            test_logger.info('Pass {} in follow user test'.format(i))
+            wp = api.get_random_wallpaper()
+            if not wp.uploader:
+                test_logger.info('Uploaded user has deleted this account. Skipping this pass')
+                continue
+            self.assertTrue(api.follow_user(wp.uploader))
+            self.assertTrue(api.unfollow_user(wp.uploader))
+
+        #Test follow fails
+        self.assertFalse(api.follow_user('NON_EXISTENT_ACCOUNTX'))
 
     @classmethod
     def tearDownClass(cls):
