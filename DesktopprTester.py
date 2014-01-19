@@ -43,6 +43,9 @@ class Test(unittest.TestCase):
     def testLikes(self):
         api = DesktopprApi.DesktopprAPI()
         api.logger.setLevel(logging.INFO)
+        #Test invalid user
+        self.assertTrue(api.get_userlikes(isinstance('alsgkhaasdfa', 100), type(None)))
+
         for i in range(6):
             test_logger.info('Pass {} [test type 1] in likes test'.format(i))
             wp = api.get_random_wallpaper()
@@ -121,7 +124,17 @@ class Test(unittest.TestCase):
         api.logger.setLevel(logging.INFO)
         self.assertTrue(api.check_if_liked('mgamerz', 418047))
         self.assertFalse(api.check_if_liked('mgamerz', 41804700))
-        
+        self.assertTrue(api.check_if_liked(isinstance('alsgkhaasdfa', 100), type(None)))
+
+
+    def testBadFilters(self):
+        api = DesktopprApi.DesktopprAPI()
+        api.authorize_API(testing_apikey)
+        self.assertTrue(isinstance(api.flag_wallpaper(717, 'flag_failure'), type(None)))
+        self.assertTrue(isinstance(api.get_wallpapers(safefilter='flag_failure'), type(None)))
+        self.assertTrue(isinstance(api.get_wallpaper_urls(safefilter='flag_failure'), type(None)))
+        self.assertTrue(isinstance(api.get_random_wallpaper(safefilter='flag_failure'), type(None)))
+
     def testUserinfo(self):
         api = DesktopprApi.DesktopprAPI()
         for i in range(6):
@@ -215,7 +228,6 @@ class Test(unittest.TestCase):
         api.logger.setLevel(logging.INFO)
         #Test if we can get a response if we aren't authorized yet.
         self.assertTrue(isinstance(api.flag_wallpaper(418618, 'flag_safe'), type(None)))
-        self.assertTrue(isinstance(api.flag_wallpaper(717, 'flag_failure'), type(None)))
         api.authorize_API(testing_apikey)
         known_safe_wallpapers = (418618, 418644)
         known_nsfw_wallpapers = (418997, 418304)
@@ -280,6 +292,13 @@ class Test(unittest.TestCase):
     def testAuthFollowUnFollow(self):
         api = DesktopprApi.DesktopprAPI()
         api.logger.setLevel(logging.INFO)
+        test_logger.info('Testing follow user as not authorized')
+        wp = api.get_random_wallpaper()
+        if wp.uploader:
+            self.assertTrue(isinstance(api.follow_user(wp.uploader),type(None)))
+        else:
+            test_logger.info('Uploaded user has deleted this account. Skipping this noauth test.')
+
         api.authorize_API(testing_apikey)
         for i in range(6):
             test_logger.info('Pass {} in follow user test'.format(i))
