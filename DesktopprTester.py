@@ -16,8 +16,7 @@ test_logger = logging.getLogger('DesktopprTester')
 print(test_logger.getEffectiveLevel())
 test_logger.setLevel(logging.INFO)
 print(test_logger.getEffectiveLevel())
-hdlr = logging.StreamHandler()
-test_logger.addHandler(hdlr)
+test_logger.addHandler(logging.StreamHandler())
 
 class Test(unittest.TestCase):
 
@@ -33,8 +32,12 @@ class Test(unittest.TestCase):
     def testUserCollection(self):
         api = DesktopprApi.DesktopprAPI()
         api.logger.setLevel(logging.INFO)
+        test_logger.info('Testing invalid user collection')
+        self.assertTrue(isinstance(api.get_user_collection('gljgvljgvljkgvlkn'), type(None)))
+
         test_logger.info('Testing KeithPitts collection.')
-        page = api.get_user_collection('keithpitt') #He is sure to have a collection.
+        #As the founder, He is sure to have a collection.
+        page = api.get_user_collection('keithpitt')
         self.assertFalse(isinstance(page, type(None)))
         self.assertTrue(isinstance(page, DesktopprApi.Page))
         self.assertFalse(page.users)
@@ -51,7 +54,8 @@ class Test(unittest.TestCase):
             wp = api.get_random_wallpaper()
             user = wp.uploader
             if not user:
-                test_logger.info('Uploaded image has no user account associated with it. It likely was deleted. Skipping this round.')
+                test_logger.info('Uploaded image has no user account associated with it. \
+                It likely was deleted. Skipping this round.')
                 continue
             test_logger.info('Wallpaper uploader is: {}'.format(user))
             test_logger.info('Getting {} liked wallpapers page'.format(user))
@@ -70,9 +74,13 @@ class Test(unittest.TestCase):
             api.like_wallpaper(paper.id)
             test_logger.info('Liking wallpaper {}'.format(i))
             liked.append(paper.id)
+        test_logger.info('Testing likes...')
         for like in liked:
-            test_logger.info('Testing like status {}'.format(i))
             self.assertTrue(api.check_if_liked(api.authed_user, like))
+
+        #Test invalid wp like
+        test_logger.info('Testing authed user liking an invalid wallpaper')
+        self.assertFalse(api.like_wallpaper('basdfasd'))
         
     def testSyncStatus(self):
         api = DesktopprApi.DesktopprAPI()
@@ -86,7 +94,8 @@ class Test(unittest.TestCase):
             synced.append(paper.id)
 
         test_logger.warning('Waiting for Dropbox transfer wallpapers for sync test.')
-        time.sleep(7) #let dropbox sync
+        #let dropbox sync
+        time.sleep(7)
         test_logger.info('Validating wallpapers were synced')
         for sync in synced:
             self.assertTrue(api.check_if_synced(api.authed_user, sync))
@@ -101,6 +110,10 @@ class Test(unittest.TestCase):
         self.assertFalse(api.check_if_synced('mgamerz', 26167))
         self.assertFalse(api.check_if_synced('mgamerz', 124089))
         self.assertFalse(api.check_if_synced('mgamerz', 1240890000))
+
+        #Test invalid wp sync
+        test_logger.info('Testing authed user syncing an invalid wallpaper')
+        self.assertFalse(api.sync_wallpaper('basdfasd'))
 
     def testStrings(self):
         api = DesktopprApi.DesktopprAPI()
@@ -156,6 +169,8 @@ class Test(unittest.TestCase):
     def testFollowing(self):
         api = DesktopprApi.DesktopprAPI()
         api.logger.setLevel(logging.INFO)
+        test_logger.info('Testing invalid user following')
+        self.assertTrue(isinstance(api.get_followed_users('gljgvljgvljkgvlkn'), type(None)))
         for i in range(6):
             test_logger.info('Pass {} in following test'.format(i))
             wp = api.get_random_wallpaper()
@@ -175,6 +190,11 @@ class Test(unittest.TestCase):
     def testFollower(self):
         api = DesktopprApi.DesktopprAPI()
         api.logger.setLevel(logging.INFO)
+
+        test_logger.info('Testing invalid user followers')
+        self.assertTrue(isinstance(api.get_user_followers('gljgvljgvljkgvlkn'), type(None)))
+
+
         for i in range(6):
             test_logger.info('Pass {} in follower test'.format(i))
             wp = api.get_random_wallpaper()
@@ -204,6 +224,9 @@ class Test(unittest.TestCase):
     def testRandomUserwallpaper(self):
         api = DesktopprApi.DesktopprAPI()
         api.logger.setLevel(logging.INFO)
+        test_logger.info('Testing invalid user collection')
+        self.assertTrue(isinstance(api.get_user_randomwallpaper('gljgvljgvljkgvlkn'), type(None)))
+
         for i in range(6):
             test_logger.info('Pass {} in random user wallpaper [keithpitt] test'.format(i))
             wp = api.get_user_randomwallpaper('keithpitt')
@@ -222,8 +245,10 @@ class Test(unittest.TestCase):
             self.assertTrue(r.status_code == 200)
 
     def testFlagging(self):
-        '''This test uses hard coded values, as I don't want to flag random wallpapers as safe/unsafe
-        if they were accidentally flagged.'''
+        """This test uses hard coded values, as I don't want to flag random wallpapers as safe/unsafe
+        if they were accidentally flagged.
+
+        """
         api = DesktopprApi.DesktopprAPI()
         api.logger.setLevel(logging.INFO)
         #Test if we can get a response if we aren't authorized yet.

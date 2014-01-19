@@ -277,7 +277,7 @@ class DesktopprAPI:
                 'Unknown filter:',
                 safefilter,
                 'Valid options are safe, include_pending, all')
-            return
+            return None
         requesturl = '{}/wallpapers/random'.format(self.baseurl)
         query = {'safe_filter': safefilter}
         r = requests.get(requesturl, params=query, headers={'Connection': 'close'})
@@ -399,7 +399,7 @@ class DesktopprAPI:
         if action == 'like' and (r.status_code == 200 or r.status_code == 422): #422 means its already synced
             return True
         else:
-            if r.status_code == 200 or r.status_code == 404: #unsync checks against your dropbox folder. If it 404's, the file is already unsynced.
+            if action == 'unlike' and (r.status_code == 200 or r.status_code == 404): #unsync checks against your dropbox folder. If it 404's, the file is already unsynced.
                 return True
         return False
 
@@ -504,7 +504,7 @@ class DesktopprAPI:
         if action == 'sync' and (r.status_code == 200 or r.status_code == 422): #422 means its already synced
             return True
         else:
-            if r.status_code == 200 or r.status_code == 404: #unsync checks against your dropbox folder. If it 404's, the file is already unsynced.
+            if action == 'unlike' and (r.status_code == 200 or r.status_code == 404): #unsync checks against your dropbox folder. If it 404's, the file is already unsynced.
                 return True
         return False
 
