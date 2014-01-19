@@ -12,8 +12,12 @@ import DesktopprApi
 import requests
 
 testing_apikey = 'HCsYzq284U11q7ZfiH-s'
-test_logger = logging.getLogger(__name__)
+test_logger = logging.getLogger('DesktopprTester')
+print(test_logger.getEffectiveLevel())
 test_logger.setLevel(logging.INFO)
+print(test_logger.getEffectiveLevel())
+test_logger.warning('WARN')
+test_logger.info('INFO')
 
 class Test(unittest.TestCase):
 
@@ -185,8 +189,8 @@ class Test(unittest.TestCase):
             self.assertTrue(r.status_code == 200)
 
     def testFlagging(self):
-        """This test uses hard coded values, as I don't want to flag random wallpapers as safe/unsafe
-        if they were accidentally flagged."""
+        '''This test uses hard coded values, as I don't want to flag random wallpapers as safe/unsafe
+        if they were accidentally flagged.'''
         api = DesktopprApi.DesktopprAPI()
         api.logger.setLevel(logging.INFO)
         #Test if we can get a response if we aren't authorized yet.
