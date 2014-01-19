@@ -4,7 +4,7 @@ python:
   - "3.3"
 # command to run tests
 
-script: 'coverage run setup.py test'
+script: 'coverage run DesktopprTester.py'
 
 after_success:
   coveralls
