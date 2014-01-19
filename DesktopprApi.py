@@ -93,11 +93,12 @@ class DesktopprAPI:
         return User(response)
 
     def get_user_collection(self, username, page=1):
-        """Gets a page of wallpapers defining ones in a users collection. The default page is 1.
+        """Gets a page of wallpapers defining ones in a users collection.
 
         :param username: User to query for information
         :type username: str
-        :param page: *Optional*, the page number to return. The number of results per page is limited by the server.
+        :param page: *Optional*, the page number to return. The number of results per page is limited by the server. \
+            The default is **page 1**.
         :type page: int
 
         :returns: * **None** -- if an error occurs (no wallpapers, invalid user...)
@@ -132,9 +133,10 @@ class DesktopprAPI:
             include_pending = Images not yet marked as safe or not safe for work (NSFW)
             all = All images, including NSFW images
 
-        :param page: *Optional*, page of results to retrieve.
+        :param page: *Optional*, page of results to retrieve. Defaults to **page 1**.
         :type page: int
-        :param safefilter: Safety filter for returned images. Valid strings are **safe**, **include_pending**, and **all**.
+        :param safefilter: *Optional*, Safety filter for returned images. Valid strings are **safe**, \
+            **include_pending**, and **all**. Defaults to **safe**.
         :type safefilter: str
 
 
@@ -171,7 +173,8 @@ class DesktopprAPI:
         :param page: *Optional*, page number to return. The server limits how many results are returned by query, so
             pages allow you to sift through results.
         :type page: int
-        :param safefilter: Safety filter for returned images. Valid strings are **safe**, **include_pending**, and **all**.
+        :param safefilter: *Optional*, safety filter for returned images. Valid strings are **safe**, \
+            **include_pending**, and **all**. Defaults to **safe**.
         :type safefilter: str
 
         :return: * :class:`Page` object -- if the command succeeds. The page object's wallpapers attribute is \
@@ -268,7 +271,8 @@ class DesktopprAPI:
             include_pending = Images not yet marked as safe or not safe for work (NSFW)
             all = All images, including NSFW images
 
-        :param safefilter: Safety filter for returned images. Valid strings are **safe**, **include_pending**, and **all**.
+        :param safefilter: *Optional*, Safety filter for returned images. \
+            Valid strings are **safe**, **include_pending**, and **all**. Defaults to **safe**.
         :type safefilter: str
 
         :returns: * **None** -- if a bad safefilter is passed (if any) or there was an error getting a wallpaper.
@@ -438,7 +442,7 @@ class DesktopprAPI:
 
         :param username: Username to get list of liked wallpapers for
         :type username: str
-        :param page: *Optional*, return different list of pages. Defaults to 1.
+        :param page: *Optional*, return different list of pages. Defaults to **page 1**.
         :type page: int
         :returns: * **None** -- if an error occurs (not a user, etc).
             *  :class:`Page` object -- if successful. Wallpapers the user likes can be accessed via the .wallpapers attribute.

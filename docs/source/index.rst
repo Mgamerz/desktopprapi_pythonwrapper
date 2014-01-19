@@ -8,7 +8,7 @@ Welcome to Desktoppr API Wrapper for Python3's documentation!
 
 .. _Desktoppr: http://desktoppr.co/
 
-This is the Documentation for the Desktoppr API Wrapper for Python3. It allows you to easily work with the `Desktoppr`_ API with human readable commands and build-in error handling.
+This is the Documentation for the Desktoppr API Wrapper for Python3. It allows you to easily work with the `Desktoppr`_ API with human readable commands and built-in error handling.
 
 Contents:
 

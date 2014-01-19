@@ -8,7 +8,7 @@ Before we dive into using the API, you should understand that the wrapper return
 * :class:`~DesktopprApi.Page` -- Page of information, containing information about other pages and containing a list of either :class:`~DesktopprApi.Wallpaper` or :class:`~DesktopprApi.User` objects.
 * :class:`~DesktopprApi.Wallpaper` -- Object defining a wallpaper on the site, containing information about the image, thumbnail and preview image, and metadata about the image.
 * :class:`~DesktopprApi.User` -- Object defining a user on the site, containing metadata about them, including things like sign up date and likes count.
-* :class:`~DesktopprApi.Image` -- Object defining an image on the site. It is contained in a W:class:`~DesktopprApi.Wallpaper` object. It contains the direct URLs to images (full, preview, and thumbnails)
+* :class:`~DesktopprApi.Image` -- Object defining an image on the site. It is contained in a :class:`~DesktopprApi.Wallpaper` object. It contains the direct URLs to images (full, preview, and thumbnails)
   
 
 Examples
