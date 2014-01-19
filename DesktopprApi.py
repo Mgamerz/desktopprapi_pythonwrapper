@@ -7,17 +7,16 @@
 """
 import requests
 import logging
-
 from requests.auth import HTTPBasicAuth
-
-#Uncomment the following line to show debugging information
-logging.getLogger().setLevel(logging.INFO)
-
 
 class DesktopprAPI:
     """
-    This class allows you to create an object that allows you to query the desktoppr site using their public api.
+    This class allows you to create an object that allows you to query the Desktoppr site using their public API.
     """
+    logger = logging.getLogger(__name__)
+    #Uncomment the following line to show debugging information
+    #self.logger.setLevel(self.logger.INFO)
+
     __version__ = '0.9'
     baseurl = 'https://api.desktoppr.co/1/'
     apikey = None #: Stored API key for the session. It is set when an authorize method succeeds.
@@ -39,10 +38,10 @@ class DesktopprAPI:
         if r.status_code == 200:
             self.apikey = apikey
             self.authed_user = r.json()['response']['username']
-            logging.info('Authenticated as {}'.format(self.authed_user))
+            self.logger.info('Authenticated as {}'.format(self.authed_user))
             return True
         else:
-            logging.info('Error authorizing via API key: {}'.format(r.status_code))
+            self.logger.info('Error authorizing via API key: {}'.format(r.status_code))
             return False
 
     def authorize_user_pass(self, username, password):
@@ -68,7 +67,7 @@ class DesktopprAPI:
             json = r.json()['response']
             self.apikey = json['api_token']
             self.authed_user = json['username']
-            logging.info('Authenticated, storing API token')
+            self.logger.info('Authenticated, storing API token')
             return True
         else:
             return False
@@ -88,7 +87,7 @@ class DesktopprAPI:
             response = requests.get(requesturl, headers={'Connection': 'close'}).json()['response']
         except Exception as e:
             #Put a logging message here
-            logging.info('Error retrieving information for user {}: {}'.format(username, e))
+            self.logger.info('Error retrieving information for user {}: {}'.format(username, e))
             return None
         return User(response)
 
@@ -109,7 +108,7 @@ class DesktopprAPI:
         requesturl = '{}users/{}/wallpapers'.format(self.baseurl, username)
         r = requests.get(requesturl, params=query, headers={'Connection': 'close'})
         if r.status_code != 200:
-            logging.info('Abnormal response code when retrieving user collection: {}'.format(r.status_code))
+            self.logger.info('Abnormal response code when retrieving user collection: {}'.format(r.status_code))
             return None
         page = Page('users', r.json())
         wallpapers = r.json()['response']
@@ -120,7 +119,7 @@ class DesktopprAPI:
             #    userpapers.append(Wallpaper(wallpaper))
             #return userpapers
         else:
-            logging.info('User has no wallpapers.')
+            self.logger.info('User has no wallpapers.')
             return None
 
     def get_wallpapers(self, page=1, safefilter='safe'):
@@ -146,7 +145,7 @@ class DesktopprAPI:
 
         """
         if safefilter != 'safe' and safefilter != 'include_pending' and safefilter != 'all':
-            logging.info(
+            self.logger.info(
                 'Unknown filter:',
                 safefilter,
                 'Valid options are safe, include_pending, all')
@@ -162,7 +161,7 @@ class DesktopprAPI:
                 wallpapers.append(Wallpaper(paperinfo))
             return wallpapers
         else:
-            logging.info('Error getting wallpapers:', response.status_code)
+            self.logger.info('Error getting wallpapers:', response.status_code)
             return None
 
     def get_wallpaper_urls(self, page=1, safefilter='safe'):
@@ -182,7 +181,7 @@ class DesktopprAPI:
              * **None** -- If an error occurs trying to get wallpapers.
         """
         if safefilter != 'safe' and safefilter != 'include_pending' and safefilter != 'all':
-            logging.warning(
+            self.logger.info(
                 'Unknown filter: {}. Valid options are safe, include_pending, all'.format(safefilter))
             return None
 
@@ -211,13 +210,9 @@ class DesktopprAPI:
         query = {'page': page}
         r = requests.get(requesturl, params=query, headers={'Connection': 'close'})
         if r.status_code == 200:
-            users = []
-            userlist = r.json()['response']
-            for user in userlist:
-                users.append(user)
-            return users
+            Page('users', r.json())
         else:
-            logging.info('Unable to retrieve followers: {}'.format(r.status_code))
+            self.logger.info('Unable to retrieve followers: {}'.format(r.status_code))
             return None
 
     def get_followed_users(self, username, page=1):
@@ -236,12 +231,9 @@ class DesktopprAPI:
         r = requests.get(requesturl, params=query, headers={'Connection': 'close'})
         if r.status_code == 200:
             users = []
-            userlist = r.json()['response']
-            for user in userlist:
-                users.append(User(user))
-            return users
+            return Page('users', r.json())
         else:
-            logging.info('Unable to retrieve following list: {}'.format(r.status_code))
+            self.logger.info('Unable to retrieve following list: {}'.format(r.status_code))
             return None
 
     def get_user_randomwallpaper(self, username):
@@ -257,10 +249,9 @@ class DesktopprAPI:
         r = requests.get(requesturl, headers={'Connection': 'close'})
         if r.status_code == 500 or r.status_code == 404:
             #error occurred
-            logging.info('Status code for URL {}: {}'.format(r.url, r.status_code))
+            self.logger.info('Status code for URL {}: {}'.format(r.url, r.status_code))
             return None
-        wallpaper = Wallpaper(r.json()['response'])
-        return wallpaper
+        return Wallpaper(r.json()['response'])
 
     def get_random_wallpaper(self, safefilter='safe'):
         """Retrieves a random wallpaper.
@@ -279,7 +270,7 @@ class DesktopprAPI:
             * :class:`Wallpaper` object -- if successful.
         """
         if safefilter != 'safe' and safefilter != 'include_pending' and safefilter != 'all':
-            logging.info(
+            self.logger.info(
                 'Unknown filter:',
                 safefilter,
                 'Valid options are safe, include_pending, all')
@@ -289,11 +280,9 @@ class DesktopprAPI:
         r = requests.get(requesturl, params=query, headers={'Connection': 'close'})
         if r.status_code != 200:
             #error occurred
-            logging.info('Error getting random wallpaper: {}', r.status_code)
+            self.logger.info('Error getting random wallpaper: {}', r.status_code)
             return None
         return Wallpaper(r.json()['response'])
-
-        pass
 
     def follow_user(self, username):
         """
@@ -329,11 +318,11 @@ class DesktopprAPI:
     def _update_follow(self, username, action):
         """Internal method to handle follow/unfollow requests"""
         if not self.apikey:
-            logging.warning(
+            self.logger.info(
                 'ERROR: This is a user command. You must first authenticate as a user with authorize_user_pass() or authorize_API() method.')
             return None
         if action != 'follow' and action != 'unfollow':
-            logging.info('Internal error: Bad command for _update_follow: {}'.format(action))
+            self.logger.info('Internal error: Bad command for _update_follow: {}'.format(action))
             return None
         r = None
         if action == 'follow':
@@ -391,10 +380,10 @@ class DesktopprAPI:
         You shouldn't need to call this.
         """
         if action != 'like' and action != 'unlike':
-            logging.info('Internal error: Bad command for _update_like: {}'.format(action))
+            self.logger.info('Internal error: Bad command for _update_like: {}'.format(action))
             return None
         if not self.apikey:
-            logging.warning(
+            self.logger.info(
                 'ERROR: This is a user command. You must first authenticate as a user with authorize_user_pass() or authorize_API() method.')
             return None
         requesturl = '{}user/wallpapers/{}/like'.format(self.baseurl, wallpaper_id)
@@ -428,7 +417,7 @@ class DesktopprAPI:
         r = requests.get('{}users/{}/likes'.format(self.baseurl, username), params=query,
                          headers={'Connection': 'close'})
         if r.status_code != 200:
-            logging.info('Error retrieving liked status:{}', r.status_code)
+            self.logger.info('Error retrieving liked status:{}', r.status_code)
             return None
         liked = r.json()['response']
         #If the response content is empty, then the user doesn't like the wallpaper.
@@ -452,7 +441,7 @@ class DesktopprAPI:
         r = requests.get('{}users/{}/likes'.format(self.baseurl, username), params=query,
                          headers={'Connection': 'close'})
         if r.status_code != 200:
-            logging.info('Error retrieving liked status:{}', r.status_code)
+            self.logger.info('Error retrieving liked status:{}', r.status_code)
             return None
         return Page('wallpapers', r.json())
 
@@ -485,7 +474,7 @@ class DesktopprAPI:
 
         :param wallpaper_id: The wallpaper id to unsync from the authorized user's DropBox
         :type wallpaper_id: int
-        :returns: * **None** if the you haven't authorized against the server yet.
+        :returns: * **None** -- if the you haven't authorized against the server yet.
             * **True** -- if a wallpaper was set to unsync (or did not exist).
             * **False** -- if the HTTP response is not 200 or 404 (Not in user's DropBox)
 
@@ -495,10 +484,10 @@ class DesktopprAPI:
     def __update_sync(self, wallpaper_id, action):
         """Internal method to handle sync requests"""
         if action != 'sync' and action != 'unsync':
-            logging.info('Internal error: Bad command for _update_sync: {}'.format(action))
+            self.logger.info('Internal error: Bad command for _update_sync: {}'.format(action))
             return None
         if not self.apikey:
-            logging.warning(
+            self.logger.info(
                 'ERROR: This is a user command. You must first authenticate as a user with authorize_user_pass() \
                  or authorize_API() method.')
             return None
@@ -537,7 +526,7 @@ class DesktopprAPI:
                          headers={'Connection': 'close'})
         if r.status_code != 200:
             #A logging message will go here.
-            logging.info('Error checking for synced wallpaper: {}'.format(r.status_code))
+            self.logger.info('Error checking for synced wallpaper: {}'.format(r.status_code))
             return None
         try:
             synced = r.json()['count']
@@ -566,10 +555,10 @@ class DesktopprAPI:
 
         """
         if flag != 'flag_safe' and flag != 'flag_not_safe' and flag != 'flag_deletion':
-            logging.info('ERROR: Flag must be flag_safe, flag_not_safe, or flag_deletion')
+            self.logger.info('ERROR: Flag must be flag_safe, flag_not_safe, or flag_deletion')
             return None
         if not self.apikey:
-            logging.warning(
+            self.logger.info(
                 'ERROR: This is a user command. You must first authenticate as a user with authorize_user_pass() \
                 or authorize_API() method.')
             return None
@@ -615,7 +604,7 @@ class Page:
          or :data:`users` list size. """
 
         if infotype != 'users' and infotype != 'wallpapers':
-            logging.error('ERROR: Page object should have been passed either users or wallpapers indicator, \
+            self.logger.error('ERROR: Page object should have been passed either users or wallpapers indicator, \
                 got: {}'.format(infotype))
 
         if infotype == 'users':

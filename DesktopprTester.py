@@ -29,6 +29,15 @@ class Test(unittest.TestCase):
     
     def testLikes(self):
         api = DesktopprApi.DesktopprAPI()
+        for _ in range(6):
+            wp = api.get_random_wallpaper()
+            user = wp.uploader
+            userlikespage = api.get_userlikes(user)
+            self.assertFalse(userlikespage.users)
+            if userlikespage.wallpapers:
+                for paper in userlikespage.wallpapers:
+                    self.assertTrue(api.check_if_liked(user, paper.id))
+
         api.authorize_API(testing_apikey)
         liked = []
         for _ in range(6):
@@ -60,7 +69,6 @@ class Test(unittest.TestCase):
         self.assertFalse(api.check_if_synced('mgamerz', 26167))
         self.assertFalse(api.check_if_synced('mgamerz', 124089))
         self.assertFalse(api.check_if_synced('mgamerz', 1240890000))
-        #More tests to be written.
         
     def testLikeStatus(self):
         api = DesktopprApi.DesktopprAPI()
@@ -90,12 +98,32 @@ class Test(unittest.TestCase):
             user = wp.uploader
             if not user:
                 #Null checking
-
                 continue
-            users = api.get_followed_users(user)
-            if users:
-                for user in users:
-                    self.assertTrue(isinstance(user, DesktopprApi.User))
+            userpage = api.get_followed_users(user)
+            if userpage:
+                self.assertTrue(isinstance(userpage, DesktopprApi.Page))
+                self.assertTrue(not userpage.wallpapers)
+                if userpage.users:
+                    #User might not follow anyone, so we want to make sure its not None first.
+                    for user in userpage.users:
+                        self.assertTrue(isinstance(user, DesktopprApi.User))
+
+    def testFollower(self):
+        api = DesktopprApi.DesktopprAPI()
+        for _ in range(6):
+            wp = api.get_random_wallpaper()
+            user = wp.uploader
+            if not user:
+                #Null checking
+                continue
+            userpage = api.get_user_followers(user)
+            if userpage:
+                self.assertTrue(isinstance(userpage, DesktopprApi.Page))
+                self.assertTrue(not userpage.wallpapers)
+                if userpage.users:
+                    #User might not follow anyone, so we want to make sure its not None first.
+                    for user in userpage.users:
+                        self.assertTrue(isinstance(user, DesktopprApi.User))
 
     def testAuthorization(self):
         #It's not really safe to put in my real username and password here.
