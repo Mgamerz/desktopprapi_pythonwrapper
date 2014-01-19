@@ -44,7 +44,7 @@ class Test(unittest.TestCase):
         api = DesktopprApi.DesktopprAPI()
         api.logger.setLevel(logging.INFO)
         #Test invalid user
-        self.assertTrue(api.get_userlikes(isinstance('alsgkhaasdfa', 100), type(None)))
+        self.assertTrue(isinstance(api.get_userlikes('alsgkhaasdfa', 100), type(None)))
 
         for i in range(6):
             test_logger.info('Pass {} [test type 1] in likes test'.format(i))
@@ -124,7 +124,7 @@ class Test(unittest.TestCase):
         api.logger.setLevel(logging.INFO)
         self.assertTrue(api.check_if_liked('mgamerz', 418047))
         self.assertFalse(api.check_if_liked('mgamerz', 41804700))
-        self.assertTrue(api.check_if_liked(isinstance('alsgkhaasdfa', 100), type(None)))
+        self.assertTrue(isinstance(api.check_if_liked('alsgkhaasdfa', 100), type(None)))
 
 
     def testBadFilters(self):
