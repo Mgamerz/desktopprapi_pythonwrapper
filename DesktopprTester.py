@@ -18,8 +18,6 @@ test_logger.setLevel(logging.INFO)
 print(test_logger.getEffectiveLevel())
 hdlr = logging.StreamHandler()
 test_logger.addHandler(hdlr)
-test_logger.warning('WARN')
-test_logger.info('INFO')
 
 class Test(unittest.TestCase):
 
@@ -49,6 +47,9 @@ class Test(unittest.TestCase):
             test_logger.info('Pass {} [test type 1] in likes test'.format(i))
             wp = api.get_random_wallpaper()
             user = wp.uploader
+            if not user:
+                test_logger.info('Uploaded image has no user account associated with it. It likely was deleted. Skipping this round.')
+                continue
             test_logger.info('Wallpaper uploader is: {}'.format(user))
             test_logger.info('Getting {} liked wallpapers page'.format(user))
             userlikespage = api.get_userlikes(user)
