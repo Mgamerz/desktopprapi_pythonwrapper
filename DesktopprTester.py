@@ -12,11 +12,15 @@ import DesktopprApi
 import requests
 
 testing_apikey = 'HCsYzq284U11q7ZfiH-s'
+test_logger = logging.getLogger(__name__)
+test_logger.setLevel(logging.INFO)
+
 class Test(unittest.TestCase):
 
 
     def testNoauth(self):
         api = DesktopprApi.DesktopprAPI()
+        api.logger.setLevel(logging.INFO)
         self.assertEqual(api.like_wallpaper(200), None)
         self.assertEqual(api.unlike_wallpaper(201), None)
         self.assertEqual(api.sync_wallpaper(202), None)
@@ -24,46 +28,64 @@ class Test(unittest.TestCase):
         
     def testUserCollection(self):
         api = DesktopprApi.DesktopprAPI()
-        wallpapers = api.get_user_collection('keithpitt') #He is sure to have a collection.
-        self.assertFalse(isinstance(wallpapers, type(None)))
+        api.logger.setLevel(logging.INFO)
+        test_logger.info('Testing KeithPitts collection.')
+        page = api.get_user_collection('keithpitt') #He is sure to have a collection.
+        self.assertFalse(isinstance(page, type(None)))
+        self.assertTrue(isinstance(page, DesktopprApi.Page))
+        self.assertFalse(page.users)
+        self.assertTrue(page.wallpapers)
     
     def testLikes(self):
         api = DesktopprApi.DesktopprAPI()
-        for _ in range(6):
+        api.logger.setLevel(logging.INFO)
+        for i in range(6):
+            test_logger.info('Pass {} [test type 1] in likes test'.format(i))
             wp = api.get_random_wallpaper()
             user = wp.uploader
+            test_logger.info('Wallpaper uploader is: {}'.format(user))
+            test_logger.info('Getting {} liked wallpapers page'.format(user))
             userlikespage = api.get_userlikes(user)
             self.assertFalse(userlikespage.users)
             if userlikespage.wallpapers:
                 for paper in userlikespage.wallpapers:
+                    test_logger.info('Testing {} likes wallpaper {}'.format(user, paper.id))
                     self.assertTrue(api.check_if_liked(user, paper.id))
 
         api.authorize_API(testing_apikey)
         liked = []
-        for _ in range(6):
+        for i in range(6):
+            test_logger.info('Pass {} [test type 2] in likes test'.format(i))
             paper = api.get_random_wallpaper()
             api.like_wallpaper(paper.id)
+            test_logger.info('Liking wallpaper {}'.format(i))
             liked.append(paper.id)
         for like in liked:
+            test_logger.info('Testing like status {}'.format(i))
             self.assertTrue(api.check_if_liked(api.authed_user, like))
         
     def testSyncStatus(self):
         api = DesktopprApi.DesktopprAPI()
+        api.logger.setLevel(logging.INFO)
         api.authorize_API(testing_apikey)
         synced = []
-        for _ in range(6):
+        for i in range(6):
+            test_logger.info('Syncing random wallpaper {}'.format(i))
             paper = api.get_random_wallpaper()
             api.sync_wallpaper(paper.id)
             synced.append(paper.id)
 
-        logging.warning('Waiting for Dropbox transfer wallpapers for sync test.')
+        test_logger.warning('Waiting for Dropbox transfer wallpapers for sync test.')
         time.sleep(7) #let dropbox sync
+        test_logger.info('Validating wallpapers were synced')
         for sync in synced:
             self.assertTrue(api.check_if_synced(api.authed_user, sync))
+            test_logger.info('Removing wallpaper.')
             self.assertTrue(api.unsync_wallpaper(sync))
 
-        logging.warning('Waiting for Dropbox to remove wallpapers.')
+        test_logger.warning('Waiting for Dropbox to remove wallpapers.')
         time.sleep(5)
+        test_logger.info('Validating wallpaper was unsynced')
         for sync in synced:
             self.assertFalse(api.check_if_synced(api.authed_user, sync))
         self.assertFalse(api.check_if_synced('mgamerz', 26167))
@@ -72,28 +94,33 @@ class Test(unittest.TestCase):
         
     def testLikeStatus(self):
         api = DesktopprApi.DesktopprAPI()
+        api.logger.setLevel(logging.INFO)
         self.assertTrue(api.check_if_liked('mgamerz', 418047))
         self.assertFalse(api.check_if_liked('mgamerz', 41804700))
         
     def testUserinfo(self):
         api = DesktopprApi.DesktopprAPI()
-        for _ in range(6):
+        for i in range(6):
+            test_logger.info('Pass {} in userinfo test'.format(i))
             wp = api.get_random_wallpaper()
             user = wp.uploader
             if not user:
-                logging.info('Uploaded image has no user account associated with it. It likely was deleted. Skipping this round.')
+                test_logger.info('Uploaded image has no user account associated with it. It likely was deleted. Skipping this round.')
                 continue
             userinfo = api.get_user_info(user)
             self.assertTrue(isinstance(userinfo, DesktopprApi.User))
 
         #Check for bad usernames.
-        userlist = ['assert_fails_test', 'assert_fails_test2', 'Check out my github its a python wrapper for this site!']
+        userlist = ['assert_fails_test', 'assert_fails_test2', 'HERPA_DERPA_HERP_DERP2']
         for user in userlist:
+            test_logger.info('Testing bad username {} in userinfo test'.format(user))
             self.assertFalse(isinstance(api.get_user_info(user), DesktopprApi.User))
     
     def testFollowing(self):
         api = DesktopprApi.DesktopprAPI()
-        for _ in range(6):
+        api.logger.setLevel(logging.INFO)
+        for i in range(6):
+            test_logger.info('Pass {} in following test'.format(i))
             wp = api.get_random_wallpaper()
             user = wp.uploader
             if not user:
@@ -110,7 +137,9 @@ class Test(unittest.TestCase):
 
     def testFollower(self):
         api = DesktopprApi.DesktopprAPI()
-        for _ in range(6):
+        api.logger.setLevel(logging.INFO)
+        for i in range(6):
+            test_logger.info('Pass {} in follower test'.format(i))
             wp = api.get_random_wallpaper()
             user = wp.uploader
             if not user:
@@ -128,6 +157,7 @@ class Test(unittest.TestCase):
     def testAuthorization(self):
         #It's not really safe to put in my real username and password here.
         api = DesktopprApi.DesktopprAPI()
+        api.logger.setLevel(logging.INFO)
         self.assertFalse(api.authorize_API('TESTING_API_AUTHORIZATION'))
         self.assertFalse(api.authorize_user_pass('API_ASSERT_FAIL', '1234567890'))
 
@@ -136,7 +166,9 @@ class Test(unittest.TestCase):
 
     def testRandomUserwallpaper(self):
         api = DesktopprApi.DesktopprAPI()
-        for _ in range(6):
+        api.logger.setLevel(logging.INFO)
+        for i in range(6):
+            test_logger.info('Pass {} in random user wallpaper [keithpitt] test'.format(i))
             wp = api.get_user_randomwallpaper('keithpitt')
             self.assertTrue(isinstance(wp, DesktopprApi.Wallpaper))
             self.assertTrue(isinstance(wp.image, DesktopprApi.Image))
@@ -145,15 +177,18 @@ class Test(unittest.TestCase):
 
     def testWallpaperUrls(self):
         api = DesktopprApi.DesktopprAPI()
+        api.logger.setLevel(logging.INFO)
         urls = api.get_wallpaper_urls()
         for url in urls:
+            test_logger.info('Testing URL exists: {}'.format(url))
             r = requests.head(url, headers={'Connection': 'close'})
             self.assertTrue(r.status_code == 200)
 
     def testFlagging(self):
-        '''This test uses hard coded values, as I don't want to flag random wallpapers as safe/unsafe
-        if they were accidentally flagged.'''
+        """This test uses hard coded values, as I don't want to flag random wallpapers as safe/unsafe
+        if they were accidentally flagged."""
         api = DesktopprApi.DesktopprAPI()
+        api.logger.setLevel(logging.INFO)
         #Test if we can get a response if we aren't authorized yet.
         self.assertTrue(isinstance(api.flag_wallpaper(418618, 'flag_safe'), type(None)))
 
@@ -161,6 +196,7 @@ class Test(unittest.TestCase):
         known_safe_wallpapers = (418618, 418644)
         known_nsfw_wallpapers = (418997, 418304)
 
+        test_logger.info('Flagging wallpapers as safe/notsafe')
         #Test real flags
         for safe in known_safe_wallpapers:
             self.assertTrue(api.flag_wallpaper(safe, 'flag_safe'))
@@ -180,26 +216,27 @@ class Test(unittest.TestCase):
             return
         else:
             #make it wait so the build server doesn't overlap.
-            time.sleep(60)
+            test_logger.warning('Waiting 90 seconds for Python 3.2 testing to finish.')
+            time.sleep(90)
         api = DesktopprApi.DesktopprAPI()
+        api.logger.setLevel(logging.INFO)
         api.authorize_API(testing_apikey)
         #first, delete existing likes.
         page = api.get_userlikes(api.authed_user)
-        print(page)
         if page:
             while page.items_on_page > 0:
                 for paper in page.wallpapers:
-                    logging.info('Unliking wallpaper before pagination testing.')
+                    test_logger.info('Unliking wallpaper...')
                     api.unlike_wallpaper(paper.id)
                 page = api.get_userlikes(api.authed_user)
 
         #Second, we will randomly like lots of wallpapers.
-        logging.info('Liking wallpapers to create pages on the server.')
+        test_logger.info('Liking wallpapers to create pages on the server.')
 
         liked = 0
         loops = 45
         for _ in range(loops):
-            logging.info('Liking wallpaper {} in loop of {}'.format(liked+1, loops))
+            test_logger.info('Liking wallpaper {} in loop of {}'.format(liked+1, loops))
             wp = api.get_random_wallpaper()
             self.assertTrue(api.like_wallpaper(wp.id))
             liked += 1
@@ -213,17 +250,19 @@ class Test(unittest.TestCase):
                 likes_page = api.get_userlikes(api.authed_user, likes_page.current_page+1)
         else:
             self.fail('Likes page should not be None')
-        logging.info('Number liked vs known number: {}:{}'.format(liked, test_numlikes))
+        test_logger.info('Number liked vs known number: {}:{}'.format(liked, test_numlikes))
         self.assertTrue(liked == test_numlikes)
 
     @classmethod
     def tearDownClass(cls):
         logging.warning('Finishing tests: Removing all wallpapers in DropBox.')
         api = DesktopprApi.DesktopprAPI()
+        api.logger.setLevel(logging.INFO)
         api.authorize_API(testing_apikey)
         page = api.get_user_collection(api.authed_user)
         while page:
             for paper in page.wallpapers:
+                logging.warning('Unsyncing wallpaper...')
                 api.unsync_wallpaper(paper.id)
             page = api.get_user_collection(api.authed_user) #Results will slowly crawl to page 1 as we delete them
 
@@ -231,8 +270,20 @@ class Test(unittest.TestCase):
         if page:
             while page.items_on_page > 0:
                 for paper in page.wallpapers:
+                    logging.warning('Unliking wallpaper...')
                     api.unlike_wallpaper(paper.id)
                 page = api.get_userlikes(api.authed_user)
+
+
+        page = api.get_followed_users(api.authed_user)
+        if page:
+            while page.items_on_page > 0:
+                for user in page.users:
+                    logging.warning('Unfollowing {}...'.format(user))
+                    api.unfollow_wallpaper(user)
+                page = api.get_userlikes(api.authed_user)
+
+
 
         #If wallpapers was false, there are no wallpapers in the collection.
 

@@ -15,7 +15,7 @@ class DesktopprAPI:
     """
     logger = logging.getLogger(__name__)
     #Uncomment the following line to show debugging information
-    #self.logger.setLevel(self.logger.INFO)
+    #logger.setLevel(logging.INFO)
 
     __version__ = '0.9'
     baseurl = 'https://api.desktoppr.co/1/'
@@ -216,7 +216,7 @@ class DesktopprAPI:
             return None
 
     def get_followed_users(self, username, page=1):
-        """Gets a list of User objects who the specified user follows.
+        """Gets a page containg a list of User objects who the specified user follows.
 
         :param username: Username to query.
         :type username: str
