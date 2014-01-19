@@ -109,6 +109,9 @@ class Test(unittest.TestCase):
         self.assertFalse(api.check_if_synced('mgamerz', 124089))
         self.assertFalse(api.check_if_synced('mgamerz', 1240890000))
 
+        #Check for invalid user sync
+        self.assertFalse(api.check_if_synced('sgahsdg;lahg', 2506))
+
         #Test invalid wp sync
         test_logger.info('Testing authed user syncing an invalid wallpaper')
         self.assertFalse(api.sync_wallpaper('basdfasd'))
@@ -334,6 +337,12 @@ class Test(unittest.TestCase):
 
         #Test follow fails
         self.assertFalse(api.follow_user('NON_EXISTENT_ACCOUNTX'))
+
+    def testInvalidPage(self):
+        #Normally you wouldn't need to call this, but for coverage I will
+        page = DesktopprApi.Page('INVALID', None)
+        self.assertFalse(page.users)
+        self.assertFalse(page.wallpapers)
 
     @classmethod
     def tearDownClass(cls):
