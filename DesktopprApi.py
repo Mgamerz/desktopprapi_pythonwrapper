@@ -420,7 +420,7 @@ class DesktopprAPI:
         r = requests.get('{}users/{}/likes'.format(self.baseurl, username), params=query,
                          headers={'Connection': 'close'})
         if r.status_code != 200:
-            self.logger.info('Error retrieving liked status:{}', r.status_code)
+            self.logger.info('Error retrieving liked status:{}'.format(r.status_code))
             return None
         liked = r.json()['response']
         #If the response content is empty, then the user doesn't like the wallpaper.
