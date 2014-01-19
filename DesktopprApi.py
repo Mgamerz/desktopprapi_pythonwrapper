@@ -16,8 +16,7 @@ class DesktopprAPI:
     logger = logging.getLogger(__name__)
     #Uncomment the following lines to show debugging information
     #logger.setLevel(logging.INFO)
-    hdlr = logging.StreamHandler()
-    logger.addHandler(hdlr)
+    logger.addHandler(logging.StreamHandler())
 
 
     __version__ = '0.9'
@@ -274,16 +273,14 @@ class DesktopprAPI:
         """
         if safefilter != 'safe' and safefilter != 'include_pending' and safefilter != 'all':
             self.logger.info(
-                'Unknown filter:',
-                safefilter,
-                'Valid options are safe, include_pending, all')
+                'Unknown filter: {}. Valid options are safe, include_pending, all'.format(safefilter))
             return None
         requesturl = '{}/wallpapers/random'.format(self.baseurl)
         query = {'safe_filter': safefilter}
         r = requests.get(requesturl, params=query, headers={'Connection': 'close'})
         if r.status_code != 200:
             #error occurred
-            self.logger.info('Error getting random wallpaper: {}', r.status_code)
+            self.logger.info('Error getting random wallpaper: {}'.format(r.status_code))
             return None
         return Wallpaper(r.json()['response'])
 
@@ -504,7 +501,7 @@ class DesktopprAPI:
         if action == 'sync' and (r.status_code == 200 or r.status_code == 422): #422 means its already synced
             return True
         else:
-            if action == 'unlike' and (r.status_code == 200 or r.status_code == 404): #unsync checks against your dropbox folder. If it 404's, the file is already unsynced.
+            if action == 'unsync' and (r.status_code == 200 or r.status_code == 404): #unsync checks against your dropbox folder. If it 404's, the file is already unsynced.
                 return True
         return False
 

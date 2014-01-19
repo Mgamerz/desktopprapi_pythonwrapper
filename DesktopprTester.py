@@ -13,9 +13,7 @@ import requests
 
 testing_apikey = 'HCsYzq284U11q7ZfiH-s'
 test_logger = logging.getLogger('DesktopprTester')
-print(test_logger.getEffectiveLevel())
 test_logger.setLevel(logging.INFO)
-print(test_logger.getEffectiveLevel())
 test_logger.addHandler(logging.StreamHandler())
 
 class Test(unittest.TestCase):
