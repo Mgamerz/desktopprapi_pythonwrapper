@@ -14,8 +14,11 @@ class DesktopprAPI:
     This class allows you to create an object that allows you to query the Desktoppr site using their public API.
     """
     logger = logging.getLogger(__name__)
-    #Uncomment the following line to show debugging information
+    #Uncomment the following lines to show debugging information
     #logger.setLevel(logging.INFO)
+    hdlr = logging.StreamHandler()
+    logger.addHandler(hdlr)
+
 
     __version__ = '0.9'
     baseurl = 'https://api.desktoppr.co/1/'

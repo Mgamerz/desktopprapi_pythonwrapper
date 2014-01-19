@@ -16,6 +16,8 @@ test_logger = logging.getLogger('DesktopprTester')
 print(test_logger.getEffectiveLevel())
 test_logger.setLevel(logging.INFO)
 print(test_logger.getEffectiveLevel())
+hdlr = logging.StreamHandler()
+test_logger.addHandler(hdlr)
 test_logger.warning('WARN')
 test_logger.info('INFO')
 
