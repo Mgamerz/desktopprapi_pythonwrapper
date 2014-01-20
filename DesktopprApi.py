@@ -148,9 +148,7 @@ class DesktopprAPI:
         """
         if safefilter != 'safe' and safefilter != 'include_pending' and safefilter != 'all':
             self.logger.info(
-                'Unknown filter:',
-                safefilter,
-                'Valid options are safe, include_pending, all')
+                'Unknown filter: {}. Valid options are safe, include_pending, all'.format(safefilter))
             return
         query = {'page': str(page), 'safe_filter': safefilter}
         requesturl = '{}/wallpapers'.format(self.baseurl)
@@ -583,28 +581,30 @@ class Page:
         """List of :class:`User` objects contained on this page. It is None if that is not what this page is supposed \
             to return."""
 
-        self.current_page = info['pagination']['current']
-        """Index of the current page this object represents."""
+        if info:
+            self.current_page = info['pagination']['current']
+            """Index of the current page this object represents."""
 
-        self.previous_page = info['pagination']['previous']
-        """ The previous page of information. It can be None if there is no previous page."""
+            self.previous_page = info['pagination']['previous']
+            """ The previous page of information. It can be None if there is no previous page."""
 
-        self.next_page = info['pagination']['next']
-        """ The next page of information. It can be None if there is no next page."""
+            self.next_page = info['pagination']['next']
+            """ The next page of information. It can be None if there is no next page."""
 
-        self.per_page = info['pagination']['per_page']
-        """How many results this page can store. It should be the same across different page numbers from the query \
-        that generated this page."""
+            self.per_page = info['pagination']['per_page']
+            """How many results this page can store. It should be the same across different page numbers from the query \
+            that generated this page."""
 
-        self.pages_count = info['pagination']['pages']
-        """How many total pages of information are in the query that generated this page."""
+            self.pages_count = info['pagination']['pages']
+            """How many total pages of information are in the query that generated this page."""
 
-        self.items_on_page = info['count']
-        """How many pieces of information are on this page. This corresponds to the size of the :data:`wallpapers` \
-         or :data:`users` list size. """
-
+            self.items_on_page = info['count']
+            """How many pieces of information are on this page. This corresponds to the size of the :data:`wallpapers` \
+             or :data:`users` list size. """
+        else:
+            logging.error('ERROR: Page object should have been passed an info json string.')
         if infotype != 'users' and infotype != 'wallpapers':
-            self.logger.error('ERROR: Page object should have been passed either users or wallpapers indicator, \
+            logging.error('ERROR: Page object should have been passed either users or wallpapers indicator, \
                 got: {}'.format(infotype))
 
         if infotype == 'users':
